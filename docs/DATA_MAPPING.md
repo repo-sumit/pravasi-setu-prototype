@@ -55,3 +55,20 @@ as-is and treat oddities as test data.
 `MIGRANT_EMPLOYERS` is derived per unique `Company Name`. Trust score and open-job count
 are aggregated from job rows. `compliance` flags and `description` are mock/enriched
 (seeded by company-name hash, marked accordingly in the JS file).
+
+## Remittance data
+
+Hand-written mock data lives in [src/data/mockData.js](../src/data/mockData.js):
+
+- `RECIPIENTS` — saved beneficiaries (UPI / bank / cash methods).
+- `PAYOUT_METHODS` — UPI / BANK / CASH option cards.
+- `FUNDING_METHODS` — debit / credit / bank transfer / wallet / agent.
+- `REMITTANCE_PROVIDERS` — 8 sample partners; each has `tag` set to one of
+  `Prototype partner`, `Mock regulated partner`, `Integration-ready`.
+- `SOURCE_COUNTRIES`, `TRANSFER_PURPOSES`, `TRANSFER_STATUSES`,
+  `RATE_ALERTS`, `TRANSFER_SUPPORT_TICKETS` — small starter sets.
+- `TRANSFERS` — three sample transfers showing happy path (UPI processing),
+  delivered (bank), and exception (cash pickup expired → refund initiated).
+
+See [REMITTANCE_FLOW.md](REMITTANCE_FLOW.md) for how these objects flow
+through the multi-step remittance UI.

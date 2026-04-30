@@ -14,7 +14,11 @@
       "Bash(jobs -l)",
       "Bash(pkill -f \"vite\")",
       "Bash(curl -sS http://localhost:5174/src/pages/GrievancePage.jsx -o /dev/null -w \"Grievance: %{http_code}\\\\n\")",
-      "Bash(curl -sS http://localhost:5174/src/pages/CalculatorPage.jsx -o /dev/null -w \"Calculator: %{http_code}\\\\n\")"
+      "Bash(curl -sS http://localhost:5174/src/pages/CalculatorPage.jsx -o /dev/null -w \"Calculator: %{http_code}\\\\n\")",
+      "Bash(curl -sS http://localhost:5174/ -o /dev/null -w \"/: %{http_code}\\\\n\")",
+      "Bash(curl -sS http://localhost:5174/favicon.png -o /dev/null -w \"favicon.png: %{http_code} %{size_download}b\\\\n\")",
+      "Bash(curl -sS http://localhost:5174/nsdc.png -o /dev/null -w \"nsdc.png: %{http_code} %{size_download}b\\\\n\")",
+      "Bash(curl -sS http://localhost:5174/convegenius.png -o /dev/null -w \"convegenius.png: %{http_code} %{size_download}b\\\\n\")"
     ]
   }
 }

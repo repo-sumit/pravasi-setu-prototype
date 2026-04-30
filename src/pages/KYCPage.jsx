@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react'
 import { useApp } from '../context/AppContext'
 import TopBar from '../components/TopBar'
+import PartnerStrip from '../components/PartnerStrip'
 import {
   Fingerprint, FileText, BookUser, Check, ArrowRight, ShieldCheck,
   RefreshCw, X
@@ -65,6 +66,8 @@ export default function KYCPage() {
             🔐 We use Aadhaar offline KYC. Your biometric data never leaves your device.
           </p>
         </div>
+
+        <PartnerStrip className="mt-6" />
       </div>
 
       <div className="px-5 py-4 border-t border-bdr-light flex-shrink-0">

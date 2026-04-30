@@ -140,24 +140,73 @@ function buildIntents(JOBS) {
       ],
     },
     {
-      keys: ['send money', 'remit money', 'send to family', 'transfer money', 'money home'],
+      keys: ['send money', 'remit money', 'send to family', 'transfer money', 'money home', 'send ₹', 'send rs', 'send to my mother', 'send to my father', 'send to wife'],
       reply: () => [
-        { from: 'bot', kind: 'text', text: 'You can send money home in under 30 minutes. Wise has the best rate today (₹22.92/AED, fee ₹90).' },
-        { from: 'bot', kind: 'action', label: 'Open Remittance', icon: SendIcon, target: 'remittance' },
+        { from: 'bot', kind: 'text', text: 'You can send to UPI, bank account, or cash pickup. Wise has the best rate today (₹22.92/AED, fee ₹90).' },
+        { from: 'bot', kind: 'action', label: 'Start a transfer', icon: SendIcon, target: 'remittance' },
       ],
     },
     {
-      keys: ['cheapest way', 'best rate', 'lowest fee'],
+      keys: ['send to upi', 'upi transfer', 'upi id'],
       reply: () => [
-        { from: 'bot', kind: 'text', text: 'Wise + Remitly currently give the best ₹/AED. SBI takes 1–2 days. Compare all live rates inside Remittance.' },
+        { from: 'bot', kind: 'text', text: 'UPI transfers usually deliver in minutes — you only need the recipient\'s UPI ID. We confirm the recipient name before sending.' },
+        { from: 'bot', kind: 'action', label: 'Send to UPI', icon: SendIcon, target: 'remittance' },
+      ],
+    },
+    {
+      keys: ['send to bank', 'bank account', 'ifsc'],
+      reply: () => [
+        { from: 'bot', kind: 'text', text: 'Bank-account transfers reach most Indian banks the same day. We\'ll need the account number and IFSC code.' },
+        { from: 'bot', kind: 'action', label: 'Send to bank account', icon: SendIcon, target: 'remittance' },
+      ],
+    },
+    {
+      keys: ['cash pickup', 'cash near my family', 'cash near'],
+      reply: () => [
+        { from: 'bot', kind: 'text', text: 'Cash pickup at Western Union / MoneyGram / India Post locations near your family. Receiver must carry a valid ID and the pickup code we send by SMS.' },
+        { from: 'bot', kind: 'action', label: 'Send for cash pickup', icon: SendIcon, target: 'remittance' },
+      ],
+    },
+    {
+      keys: ['cheapest way', 'best rate', 'lowest fee', 'compare provider'],
+      reply: () => [
+        { from: 'bot', kind: 'text', text: 'Wise and NPCI UPI inward-remittance currently give the best ₹/AED with zero or near-zero fees. SBI is slower but trusted. Compare all 8 providers inside Remittance.' },
         { from: 'bot', kind: 'action', label: 'Compare providers', icon: SendIcon, target: 'remittance' },
       ],
     },
     {
-      keys: ['track transfer', 'track my transfer', 'transfer status'],
+      keys: ['track transfer', 'track my transfer', 'transfer status', 'where is my transfer'],
       reply: () => [
-        { from: 'bot', kind: 'text', text: 'Your latest transfer #TR-9821 is in transit (Wise rails). ETA: 11:00 AM today.' },
-        { from: 'bot', kind: 'action', label: 'Open Transfer Tracker', icon: Receipt, target: 'transferTracker' },
+        { from: 'bot', kind: 'text', text: 'Your latest transfer TR-9821 is in UPI processing. ETA: 11:00 AM today.' },
+        { from: 'bot', kind: 'action', label: 'Open Transfer Tracker', icon: Receipt, target: 'transferTracker', params: { transferId: 'TR-9821' } },
+      ],
+    },
+    {
+      keys: ['transfer delayed', 'why is my transfer', 'delayed', 'stuck'],
+      reply: () => [
+        { from: 'bot', kind: 'text', text: 'Compliance reviews can add 30–60 minutes. If it\'s been longer, I\'ll route to support. Want to check the timeline?' },
+        { from: 'bot', kind: 'action', label: 'Check tracker', icon: Receipt, target: 'transferTracker' },
+      ],
+    },
+    {
+      keys: ['download receipt', 'transfer receipt'],
+      reply: () => [
+        { from: 'bot', kind: 'text', text: 'Open the transfer in the tracker — you can download the PDF or share it on WhatsApp.' },
+        { from: 'bot', kind: 'action', label: 'Open Transfer Tracker', icon: Download, target: 'transferTracker' },
+      ],
+    },
+    {
+      keys: ['notify receiver', 'tell my family', 'sms recipient'],
+      reply: () => [
+        { from: 'bot', kind: 'text', text: 'I\'ll send your recipient an SMS with the transfer ID and ETA. Tap below to choose which transfer.' },
+        { from: 'bot', kind: 'action', label: 'Pick a transfer', icon: Receipt, target: 'transferTracker' },
+      ],
+    },
+    {
+      keys: ['rate alert', 'notify me when', 'set alert'],
+      reply: () => [
+        { from: 'bot', kind: 'text', text: 'Set a threshold (e.g. 1 AED ≥ ₹23.10). I\'ll notify you the moment the rate beats it — useful for monthly remittances.' },
+        { from: 'bot', kind: 'action', label: 'Open Remittance', icon: SendIcon, target: 'remittance' },
       ],
     },
     {

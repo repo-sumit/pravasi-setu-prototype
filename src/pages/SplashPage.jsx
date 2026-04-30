@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { useApp } from '../context/AppContext'
 import Logo from '../components/Logo'
+import PartnerStrip from '../components/PartnerStrip'
 import { Check, Globe } from 'lucide-react'
 
 const LANGS = [
@@ -72,6 +73,8 @@ export default function SplashPage() {
         >
           Continue
         </button>
+
+        <PartnerStrip className="w-full mt-2" />
       </div>
     </div>
   )

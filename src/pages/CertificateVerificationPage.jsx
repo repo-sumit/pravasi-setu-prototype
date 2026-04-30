@@ -4,6 +4,7 @@ import StatusBar from '../components/StatusBar'
 import TopBar from '../components/TopBar'
 import { VerifiedBadge } from '../components/VerifiedBadge'
 import { CERTIFICATES } from '../data/mockData'
+import PartnerStrip from '../components/PartnerStrip'
 import {
   Award, Building2, Calendar, FileBadge, Hash, ShieldCheck, Download, Share2, ChevronRight, Clock
 } from 'lucide-react'
@@ -107,6 +108,8 @@ export default function CertificateVerificationPage() {
             Verified certificates can be shared with employers via your Skill Passport QR — no manual checks needed.
           </p>
         </div>
+
+        <PartnerStrip className="mx-4 mt-3" />
       </div>
 
       <div className="px-4 py-3 border-t border-bdr-light bg-white flex gap-2 flex-shrink-0">

@@ -1,12 +1,19 @@
+@import './styles/tokens.css';
+@import './styles/theme.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
   *, *::before, *::after { box-sizing: border-box; }
-  input, button, select, textarea {
-    font-family: 'Montserrat', sans-serif;
+  html, body, #root { height: 100%; }
+  body {
+    background: var(--color-background-default);
+    color: var(--color-text-primary);
+    font-family: 'Montserrat', 'Mukta', 'Noto Sans', system-ui, sans-serif;
   }
+  input, button, select, textarea { font-family: inherit; }
 }
 
 @layer utilities {
@@ -16,7 +23,7 @@
 
 [contenteditable]:empty:before {
   content: attr(data-placeholder);
-  color: #A8B4C5;
+  color: var(--color-text-tertiary);
   pointer-events: none;
   display: block;
 }

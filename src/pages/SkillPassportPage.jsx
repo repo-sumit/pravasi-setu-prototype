@@ -3,6 +3,7 @@ import { useApp } from '../context/AppContext'
 import StatusBar from '../components/StatusBar'
 import TopBar from '../components/TopBar'
 import { VerifiedBadge } from '../components/VerifiedBadge'
+import PartnerStrip from '../components/PartnerStrip'
 import { QrCode, Share2, Download, Plus, Award, Briefcase, Star, ChevronRight } from 'lucide-react'
 
 export default function SkillPassportPage() {
@@ -109,6 +110,11 @@ export default function SkillPassportPage() {
             Generate Resume PDF
           </button>
         </div>
+
+        <PartnerStrip className="mx-4 mt-5" />
+        <p className="text-center text-[10px] text-txt-tertiary mt-3 mb-2 px-6">
+          Skills verified via NSDC International. Powered by ConveGenius.
+        </p>
       </div>
     </div>
   )
