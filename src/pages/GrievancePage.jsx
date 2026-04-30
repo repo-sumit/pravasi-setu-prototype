@@ -1,0 +1,189 @@
+import React, { useState } from 'react'
+import { useApp } from '../context/AppContext'
+import StatusBar from '../components/StatusBar'
+import TopBar from '../components/TopBar'
+import { GRIEVANCES } from '../data/mockData'
+import {
+  AlertTriangle, Phone, Wallet, Building, Shield, Mic, Send, CheckCircle2, Clock, ChevronRight, Plus
+} from 'lucide-react'
+
+const CATEGORIES = [
+  { id: 'salary',     label: 'Salary dispute',       icon: Wallet,         color: 'bg-warn-light text-warn' },
+  { id: 'employer',   label: 'Employer issue',       icon: Building,       color: 'bg-info-light text-info' },
+  { id: 'safety',     label: 'Abuse / unsafe',       icon: Shield,         color: 'bg-danger-light text-danger' },
+  { id: 'legal',      label: 'Legal',                icon: AlertTriangle,  color: 'bg-primary-light text-primary' },
+]
+
+export default function GrievancePage() {
+  const { showToast, navigate } = useApp()
+  const [creating, setCreating] = useState(false)
+  const [cat, setCat] = useState(null)
+  const [desc, setDesc] = useState('')
+
+  const submit = () => {
+    showToast('Grievance #PS-2056 raised · Embassy notified')
+    setCreating(false)
+    setCat(null)
+    setDesc('')
+  }
+
+  if (creating) {
+    return (
+      <div className="flex-1 flex flex-col bg-surface-secondary overflow-hidden">
+        <StatusBar />
+        <TopBar title="Raise Grievance" closeButton onBack={() => setCreating(false)} />
+
+        <div className="flex-1 overflow-y-auto px-4 py-4 pb-24">
+          <div className="text-[12px] font-bold text-txt-secondary uppercase mb-2">Category</div>
+          <div className="grid grid-cols-2 gap-2 mb-4">
+            {CATEGORIES.map(c => {
+              const Icon = c.icon
+              const active = cat === c.id
+              return (
+                <button
+                  key={c.id}
+                  onClick={() => setCat(c.id)}
+                  className={`p-3 rounded-card border-2 text-left ${
+                    active ? 'border-primary bg-primary-light' : 'border-bdr bg-white'
+                  }`}
+                >
+                  <div className={`w-9 h-9 rounded-xl ${c.color} flex items-center justify-center mb-2`}>
+                    <Icon size={16} />
+                  </div>
+                  <div className="text-[12px] font-bold text-txt-primary">{c.label}</div>
+                </button>
+              )
+            })}
+          </div>
+
+          <div className="text-[12px] font-bold text-txt-secondary uppercase mb-2">Describe what happened</div>
+          <div className="bg-white rounded-card border-2 border-bdr p-3">
+            <textarea
+              value={desc}
+              onChange={e => setDesc(e.target.value)}
+              rows={5}
+              placeholder="When · Where · Who · Amount (if any) ..."
+              className="w-full text-[13px] outline-none resize-none"
+            />
+            <div className="flex items-center justify-between mt-2 pt-2 border-t border-bdr-light">
+              <button onClick={() => showToast('Recording...')} className="flex items-center gap-1 text-[11px] font-bold text-primary">
+                <Mic size={14} /> Voice note
+              </button>
+              <button onClick={() => showToast('Photo attached')} className="text-[11px] font-bold text-primary">
+                + Attach evidence
+              </button>
+            </div>
+          </div>
+
+          <div className="mt-4 p-3 bg-info-light rounded-xl">
+            <div className="text-[11px] font-bold text-info">Routes to:</div>
+            <div className="text-[10px] text-txt-secondary leading-relaxed mt-1">
+              MEA · Indian Embassy in UAE · NGO partner (Migrants Forum Asia) · Pravasi Setu legal team
+            </div>
+          </div>
+        </div>
+
+        <div className="px-4 py-3 border-t border-bdr-light bg-white flex gap-2 flex-shrink-0">
+          <button
+            onClick={() => showToast('Emergency support contacted', 'error')}
+            className="flex-1 bg-danger text-white font-bold text-[13px] py-3 rounded-pill flex items-center justify-center gap-1"
+          >
+            <Phone size={14} /> Emergency
+          </button>
+          <button
+            onClick={submit}
+            disabled={!cat || !desc}
+            className="flex-1 bg-primary text-white font-bold text-[13px] py-3 rounded-pill disabled:opacity-40 flex items-center justify-center gap-1"
+          >
+            <Send size={14} /> Submit
+          </button>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="flex-1 flex flex-col bg-surface-secondary overflow-hidden">
+      <StatusBar dark />
+      <TopBar title="Grievance Redressal" sub="Safe escalation · 24×7 support" dark />
+
+      <div className="bg-primary text-white px-5 pb-5">
+        <p className="text-[12px] opacity-90 mb-3">
+          You're not alone. Raise grievances against employers, agents or unsafe conditions — we route to the right authority.
+        </p>
+        <div className="flex gap-2">
+          <button
+            onClick={() => showToast('Emergency: calling Indian Embassy', 'error')}
+            className="flex-1 bg-danger rounded-pill py-3 font-bold text-[13px] flex items-center justify-center gap-2"
+          >
+            <Phone size={14} /> Emergency Help
+          </button>
+          <button
+            onClick={() => setCreating(true)}
+            className="flex-1 bg-white text-primary rounded-pill py-3 font-bold text-[13px] flex items-center justify-center gap-2"
+          >
+            <Plus size={14} /> Raise New
+          </button>
+        </div>
+      </div>
+
+      <div className="flex-1 overflow-y-auto px-4 py-4">
+        <div className="text-[12px] font-bold text-txt-secondary uppercase mb-2">My tickets</div>
+        <div className="space-y-2">
+          {GRIEVANCES.map(g => (
+            <div key={g.id} className="bg-white rounded-card shadow-card p-4">
+              <div className="flex items-start justify-between gap-2">
+                <div className="flex-1">
+                  <div className="text-[10px] font-bold text-txt-tertiary uppercase">{g.id}</div>
+                  <div className="text-[13px] font-bold text-txt-primary mt-0.5">{g.title}</div>
+                  <div className="text-[10px] text-txt-secondary mt-1">{g.category} · Raised {g.date}</div>
+                </div>
+                <span className={`text-[10px] font-bold px-2 py-1 rounded-full whitespace-nowrap ${
+                  g.status === 'Resolved' ? 'bg-ok-light text-ok' : 'bg-warn-light text-warn'
+                }`}>
+                  {g.status === 'Resolved' ? <CheckCircle2 size={10} className="inline mr-0.5" /> : <Clock size={10} className="inline mr-0.5" />}
+                  {g.status}
+                </span>
+              </div>
+              {/* status bar */}
+              <div className="mt-3 grid grid-cols-4 gap-1">
+                {['Filed', 'Under review', 'Action taken', 'Resolved'].map((step, i) => {
+                  const total = g.status === 'Resolved' ? 4 : 2
+                  const active = i < total
+                  return (
+                    <div key={step}>
+                      <div className={`h-1 rounded-full ${active ? 'bg-primary' : 'bg-bdr'}`} />
+                      <div className={`text-[9px] mt-1 ${active ? 'text-primary font-bold' : 'text-txt-tertiary'}`}>{step}</div>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <div className="mt-4 bg-white rounded-card shadow-card p-4">
+          <div className="text-[12px] font-bold text-txt-secondary uppercase mb-3">Helpline numbers</div>
+          <Helpline label="MADAD (MEA Helpline)" num="+91 11 4078 8870" />
+          <Helpline label="Indian Embassy Dubai" num="+971 4 397 1222" />
+          <Helpline label="Pravasi Bharatiya Sahayata Kendra" num="+91 11 2310 0011" />
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function Helpline({ label, num }) {
+  return (
+    <div className="flex items-center gap-3 py-2">
+      <div className="w-9 h-9 rounded-lg bg-danger-light flex items-center justify-center">
+        <Phone size={14} className="text-danger" />
+      </div>
+      <div className="flex-1">
+        <div className="text-[12px] font-bold text-txt-primary">{label}</div>
+        <div className="text-[11px] text-primary font-semibold">{num}</div>
+      </div>
+      <ChevronRight size={14} className="text-txt-tertiary" />
+    </div>
+  )
+}
