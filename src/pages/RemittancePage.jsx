@@ -132,9 +132,11 @@ export default function RemittancePage() {
         onBack={step > 0 && step < 6 ? () => setStep(s => s - 1) : undefined}
       />
 
-      {/* Stepper */}
+      {/* Stepper — full-width blue band, content capped to xl. */}
       <div className="bg-primary px-4 pb-4">
-        <Stepper steps={STEP_LABELS.slice(0, 6)} current={Math.min(step, 5)} className="text-white [&_*]:!text-white" />
+        <div className="max-w-screen-xl mx-auto w-full">
+          <Stepper steps={STEP_LABELS.slice(0, 6)} current={Math.min(step, 5)} className="text-white [&_*]:!text-white" />
+        </div>
       </div>
 
       <div className="flex-1 overflow-y-auto pb-28">

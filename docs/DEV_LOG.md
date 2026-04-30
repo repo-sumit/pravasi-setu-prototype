@@ -50,3 +50,64 @@
 - [REMITTANCE_FLOW.md](REMITTANCE_FLOW.md)
 - [PROTOTYPE_GAP_ANALYSIS.md](PROTOTYPE_GAP_ANALYSIS.md)
 - [REQUIREMENT_TRACEABILITY_MATRIX.md](REQUIREMENT_TRACEABILITY_MATRIX.md)
+
+---
+
+## 2026-04-30 (later) — UI responsiveness + validation audit
+
+### Layout helpers
+- Added [src/components/PageShell.jsx](../src/components/PageShell.jsx) with
+  `size="form" | "content" | "wide"` (560 / 768 / 1280px caps).
+- Added [src/components/FormShell.jsx](../src/components/FormShell.jsx) — 640px
+  cap for sub-flows / modal-style screens.
+- Made [KYCPage `FlowShell`](../src/pages/KYCPage.jsx) cap inner content at
+  640px so Aadhaar eKYC / DigiLocker / APAAR forms stop sprawling on desktop.
+
+### Page-level fixes
+- **PreDeparturePage** — replaced `aspect-square` `ServiceTile` with compact
+  cards (`min-h-[88-96px]`, `line-clamp-2` label). Grid now
+  `grid-cols-3 md:grid-cols-4 lg:grid-cols-4`. Header content capped to
+  `max-w-screen-lg`. Progress bar uses white-on-blue.
+- **RemittancePage** — blue stepper band content capped to
+  `max-w-screen-xl`.
+- **EmergencyAssistancePage** — hero content, scenario grid
+  (`md:3 lg:4`), hotline cards (`lg:2-col`) and inner sections all wrapped
+  in `max-w-screen-xl`.
+- **HomePage** — orange/yellow "Safe Migration" gradient replaced with
+  `from-primary to-primary-dark` blue gradient + white pill CTA. Quick
+  Services grid restyled: fixed-height cards (`h-[120px] sm:h-[136px]`),
+  centered icon + label using `flex-col items-center justify-center`,
+  `line-clamp-2`, hover lift, responsive `grid-cols-3 sm:grid-cols-4 lg:grid-cols-6`.
+- **ProfilePage** — every section wrapped in a unified `Section` card
+  (`rounded-3xl shadow-card`, `divide-y` row separators, larger 9px icon
+  bubbles). Avatar block raised to `rounded-2xl` with shadow-modal. Footer
+  copy cleaned up.
+- **GrievancePage** — header CTA row capped to `max-w-screen-md`; create
+  flow body wrapped in the same container.
+
+### Validation
+- Added [src/utils/validation.js](../src/utils/validation.js):
+  `isRequired`, `isValidIndianPhone`, `isValidAadhaar`, `maskAadhaar`,
+  `isValidOTP`, `isValidCaptcha`, `isValidAge`, `isValidDOB`, `getAgeFromDOB`,
+  `isAdult`, `isReasonableWorkingAge`, `isValidName`, `isValidLocation`,
+  `isValidSalary`, `isValidIFSC`, `isValidUPI`, `isValidBankAccount`,
+  `isValidDescription`, `validateForm`.
+- **LoginPage** — phone input uses `isValidIndianPhone`; inline error +
+  red border + disabled CTA + tap-disabled-CTA reveals errors.
+- **KYCPage Aadhaar sub-flow** — Aadhaar dummy-value rejection
+  (`000000000000` etc.), captcha case-insensitive match,
+  consent-required block, OTP 6-digit. Errors render inline; submit
+  disabled until valid.
+- **ProfileSetupPage** — Step 0 now requires DOB (auto-calculates age,
+  age field becomes read-only). Validators: name (letters/2+),
+  phone (Indian 10-digit), DOB (≥18), location (3+). Inline errors only
+  after blur or after pressing Next.
+- **GrievancePage** — category required + 20-character description (or
+  voice note). Submit disabled until satisfied; emergency button stays
+  one-tap.
+
+### Acceptance
+- `npm run build` succeeds.
+- No green/teal as brand color anywhere; semantic green retained for
+  verified / completed / success states only.
+- Auth pages capped at 560px, KYC sub-flows at 640px.

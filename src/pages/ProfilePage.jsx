@@ -17,57 +17,54 @@ export default function ProfilePage() {
       <StatusBar />
       <TopBar title="My Profile" />
       <div className="flex-1 overflow-y-auto pb-20">
-        <div className="max-w-screen-md mx-auto w-full">
-        {/* Header card */}
-        <div className="bg-white p-5 flex items-center gap-4">
-          <div className="w-16 h-16 rounded-full bg-gradient-to-br from-primary to-primary-dark flex items-center justify-center text-white text-[22px] font-bold flex-shrink-0">
-            {profile.name.split(' ').map(n => n[0]).join('')}
-          </div>
-          <div className="flex-1">
-            <div className="text-[16px] font-bold text-txt-primary">{profile.name}</div>
-            <div className="text-[11px] text-txt-secondary">{profile.phone}</div>
-            <div className="flex items-center gap-1 mt-1">
-              <VerifiedBadge verified label="KYC Verified" />
+        <div className="max-w-screen-md mx-auto w-full px-4 sm:px-5 py-4 space-y-4">
+          {/* Header summary */}
+          <div className="bg-white rounded-3xl shadow-card p-5 flex items-center gap-4">
+            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary to-primary-dark flex items-center justify-center text-white text-[22px] font-bold flex-shrink-0 shadow-modal">
+              {profile.name.split(' ').map(n => n[0]).join('')}
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="text-[16px] font-bold text-txt-primary truncate">{profile.name}</div>
+              <div className="text-[12px] text-txt-secondary truncate">{profile.phone}</div>
+              <div className="flex items-center gap-1 mt-1.5">
+                <VerifiedBadge verified label="KYC Verified" />
+              </div>
             </div>
           </div>
-        </div>
 
-        {/* Identity */}
-        <div className="bg-white mt-2 p-4">
-          <div className="text-[12px] font-bold text-txt-secondary uppercase mb-3">Identity</div>
-          <Row icon={Fingerprint} label="Aadhaar" value="XXXX XXXX 4523" verified={profile.aadhaarVerified} />
-          <Row icon={BookUser} label="APAAR ID" value="APR-2389-4521" verified={profile.apaarVerified} />
-          <Row icon={FileText} label="DigiLocker" value="Linked · 8 documents" verified={profile.digilockerLinked} />
-          <Row icon={ShieldCheck} label="Police Clearance Certificate" value="Not yet uploaded" verified={profile.pccVerified} />
-        </div>
+          {/* Identity */}
+          <Section title="Identity">
+            <Row icon={Fingerprint} label="Aadhaar" value="XXXX XXXX 4523" verified={profile.aadhaarVerified} />
+            <Row icon={BookUser}    label="APAAR ID" value="APR-2389-4521" verified={profile.apaarVerified} />
+            <Row icon={FileText}    label="DigiLocker" value="Linked · 8 documents" verified={profile.digilockerLinked} />
+            <Row icon={ShieldCheck} label="Police Clearance Certificate" value="Not yet uploaded" verified={profile.pccVerified} />
+          </Section>
 
-        {/* Personal */}
-        <div className="bg-white mt-2 p-4">
-          <div className="text-[12px] font-bold text-txt-secondary uppercase mb-3">Personal Details</div>
-          <Row icon={User} label="Age & Gender" value={`${profile.age} · ${profile.gender}`} />
-          <Row icon={MapPin} label="Location" value={profile.location} />
-          <Row icon={BookOpen} label="Education" value={profile.education} />
-          <Row icon={Phone} label="Phone" value={profile.phone} />
-        </div>
+          {/* Personal */}
+          <Section title="Personal Details">
+            <Row icon={User}     label="Age & Gender" value={`${profile.age} · ${profile.gender}`} />
+            <Row icon={MapPin}   label="Location"     value={profile.location} />
+            <Row icon={BookOpen} label="Education"    value={profile.education} />
+            <Row icon={Phone}    label="Phone"        value={profile.phone} />
+          </Section>
 
-        {/* Quick links */}
-        <div className="bg-white mt-2 p-4">
-          <div className="text-[12px] font-bold text-txt-secondary uppercase mb-3">Documents & Skills</div>
-          <LinkRow icon={ShieldCheck} label="Skill Passport" sub="3 skills · 3 certificates" onClick={() => navigate('passport')} />
-          <LinkRow icon={FileText} label="Resume Builder" sub="Generate PDF · Share QR" onClick={() => navigate('passport')} />
-          <LinkRow icon={Languages} label="Languages" sub="Hindi, English, Basic Arabic" />
-        </div>
+          {/* Documents & Skills */}
+          <Section title="Documents & Skills">
+            <LinkRow icon={ShieldCheck} label="Skill Passport" sub="3 skills · 3 certificates" onClick={() => navigate('passport')} />
+            <LinkRow icon={FileText}    label="Resume Builder" sub="Generate PDF · Share QR" onClick={() => navigate('passport')} />
+            <LinkRow icon={Languages}   label="Languages"      sub="Hindi, English, Basic Arabic" />
+          </Section>
 
-        <div className="bg-white mt-2 p-4">
-          <div className="text-[12px] font-bold text-txt-secondary uppercase mb-3">Settings</div>
-          <LinkRow icon={Globe} label="Language" sub="English · Voice support enabled" />
-          <LinkRow icon={Settings} label="Notifications & Alerts" />
-          <LinkRow icon={LogOut} label="Sign Out" danger onClick={() => navigate('splash')} />
-        </div>
+          {/* Settings */}
+          <Section title="Settings">
+            <LinkRow icon={Globe}    label="Language"             sub="English · Voice support enabled" />
+            <LinkRow icon={Settings} label="Notifications & Alerts" />
+            <LinkRow icon={LogOut}   label="Sign Out" danger onClick={() => navigate('splash')} />
+          </Section>
 
-        <p className="text-center text-[10px] text-txt-tertiary mt-4 mb-2">
-          Pravasi Setu v0.1 · Powered by ConveGenius · In partnership with NSDC International
-        </p>
+          <p className="text-center text-[10px] text-txt-tertiary pt-2 pb-3 px-2 leading-relaxed">
+            Pravasi Setu v0.1 · Powered by ConveGenius · In partnership with NSDC International
+          </p>
         </div>
       </div>
       <BottomNav />
@@ -75,10 +72,21 @@ export default function ProfilePage() {
   )
 }
 
+function Section({ title, children }) {
+  return (
+    <div className="bg-white rounded-3xl shadow-card p-5">
+      <div className="text-[11px] font-bold text-txt-secondary uppercase tracking-wide mb-3">{title}</div>
+      <div className="divide-y divide-bdr-light/60">
+        {children}
+      </div>
+    </div>
+  )
+}
+
 function Row({ icon: Icon, label, value, verified }) {
   return (
-    <div className="flex items-center gap-3 py-2.5">
-      <div className="w-8 h-8 rounded-lg bg-primary-light flex items-center justify-center flex-shrink-0">
+    <div className="flex items-center gap-3 py-3 first:pt-0 last:pb-0">
+      <div className="w-9 h-9 rounded-xl bg-primary-light flex items-center justify-center flex-shrink-0">
         <Icon size={16} className="text-primary" />
       </div>
       <div className="flex-1 min-w-0">
@@ -92,17 +100,17 @@ function Row({ icon: Icon, label, value, verified }) {
 
 function LinkRow({ icon: Icon, label, sub, danger, onClick }) {
   return (
-    <button onClick={onClick} className="w-full flex items-center gap-3 py-2.5 active:bg-surface-secondary rounded-lg">
-      <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${
+    <button onClick={onClick} className="w-full flex items-center gap-3 py-3 first:pt-0 last:pb-0 active:bg-surface-secondary rounded-lg text-left transition-colors">
+      <div className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 ${
         danger ? 'bg-danger-light text-danger' : 'bg-primary-light text-primary'
       }`}>
         <Icon size={16} />
       </div>
-      <div className="flex-1 text-left">
+      <div className="flex-1 min-w-0">
         <div className={`text-[13px] font-semibold ${danger ? 'text-danger' : 'text-txt-primary'}`}>{label}</div>
-        {sub && <div className="text-[11px] text-txt-secondary">{sub}</div>}
+        {sub && <div className="text-[11px] text-txt-secondary truncate">{sub}</div>}
       </div>
-      <ChevronRight size={16} className="text-txt-tertiary" />
+      <ChevronRight size={16} className="text-txt-tertiary flex-shrink-0" />
     </button>
   )
 }

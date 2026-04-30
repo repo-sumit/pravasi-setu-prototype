@@ -82,19 +82,19 @@ export default function HomePage() {
         <div className="text-[12px] font-bold text-txt-secondary uppercase tracking-wide mb-2 px-1">
           Quick Services
         </div>
-        <div className="grid grid-cols-4 sm:grid-cols-6 gap-3">
+        <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-3 sm:gap-4">
           {QUICK_TILES.map(t => {
             const Icon = t.icon
             return (
               <button
                 key={t.id}
                 onClick={() => navigate(t.id)}
-                className="bg-white rounded-card shadow-card p-3 flex flex-col items-center gap-2 active:scale-[0.97] aspect-square"
+                className="h-[120px] sm:h-[136px] rounded-2xl bg-white shadow-card border border-bdr-light flex flex-col items-center justify-center text-center gap-2 px-3 py-3 transition-all hover:-translate-y-0.5 hover:border-primary hover:shadow-modal active:scale-[0.98]"
               >
-                <div className={`w-10 h-10 rounded-xl ${t.color} flex items-center justify-center`}>
-                  <Icon size={20} strokeWidth={2.2} />
+                <div className={`w-12 h-12 rounded-xl ${t.color} flex items-center justify-center shrink-0`}>
+                  <Icon size={22} strokeWidth={2.2} />
                 </div>
-                <span className="text-[10px] font-semibold text-txt-primary text-center leading-tight">
+                <span className="text-[12px] font-bold text-txt-primary leading-tight line-clamp-2 text-center">
                   {t.title}
                 </span>
               </button>
@@ -102,11 +102,11 @@ export default function HomePage() {
           })}
         </div>
 
-        <div className="mt-5 bg-gradient-to-r from-accent to-warn rounded-card p-4 text-white">
-          <div className="text-[11px] font-semibold opacity-90">SAFE MIGRATION</div>
+        <div className="mt-5 bg-gradient-to-r from-primary to-primary-dark rounded-2xl p-4 text-white shadow-modal">
+          <div className="text-[11px] font-semibold opacity-90 tracking-wide">SAFE MIGRATION</div>
           <div className="text-[15px] font-extrabold mt-0.5">2 verified jobs match your skills</div>
           <div className="text-[12px] opacity-90 mt-1">Industrial Electrician — Dubai · ₹62,000</div>
-          <button onClick={() => navigate('jobs')} className="mt-3 bg-white text-accent text-[12px] font-bold px-4 py-2 rounded-pill">
+          <button onClick={() => navigate('jobs')} className="mt-3 bg-white text-primary text-[12px] font-bold px-4 py-2 rounded-pill hover:bg-primary-50 transition-colors">
             View Jobs →
           </button>
         </div>

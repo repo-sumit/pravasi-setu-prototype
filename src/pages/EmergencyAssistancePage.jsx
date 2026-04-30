@@ -33,6 +33,7 @@ export default function EmergencyAssistancePage() {
       <TopBar title="Emergency Assistance" sub="24×7 · Multilingual" dark />
 
       <div className="bg-danger text-white px-5 pb-6 pt-4">
+        <div className="max-w-screen-xl mx-auto w-full">
         <div className="flex items-center gap-3">
           <div className="w-12 h-12 rounded-full bg-white/15 flex items-center justify-center">
             <Siren size={26} />
@@ -52,13 +53,15 @@ export default function EmergencyAssistancePage() {
           <Siren size={18} /> Send SOS with my location
         </button>
         <p className="text-[10px] opacity-80 mt-1 text-center">Shares GPS, profile and last 3 locations</p>
+        </div>
       </div>
 
       <div className="flex-1 overflow-y-auto pb-6">
+        <div className="max-w-screen-xl mx-auto w-full">
         {/* Scenarios */}
         <div className="px-4 pt-4">
           <div className="text-[12px] font-bold text-txt-secondary uppercase mb-2">What's happening?</div>
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
             {SCENARIOS.map(s => (
               <button
                 key={s.label}
@@ -75,7 +78,7 @@ export default function EmergencyAssistancePage() {
         {/* Hotlines */}
         <div className="px-4 mt-4">
           <div className="text-[12px] font-bold text-txt-secondary uppercase mb-2">Tap to call</div>
-          <div className="bg-white rounded-card shadow-card p-2 space-y-1">
+          <div className="bg-white rounded-card shadow-card p-2 grid grid-cols-1 lg:grid-cols-2 gap-1">
             {HOTLINES.map(h => {
               const Icon = h.icon
               return (
@@ -134,6 +137,7 @@ export default function EmergencyAssistancePage() {
             </div>
             <button onClick={() => showToast('Live location sharing started')} className="text-[11px] font-bold text-primary">Start →</button>
           </div>
+        </div>
         </div>
       </div>
     </div>

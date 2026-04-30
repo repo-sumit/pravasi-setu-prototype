@@ -48,3 +48,36 @@ financial, banking, or government integrations are claimed.
 - No real banking, NPCI, exchange-house, or KYC partner APIs.
 - Provider rates and fees are illustrative — labelled accordingly.
 - Cards/Apple Pay/Google Pay UIs are visual stubs only — no payment SDK.
+
+## UI Responsiveness + Validation Audit (2026-04-30 later)
+
+| Concern                                        | Status | Where                                                                |
+|------------------------------------------------|--------|----------------------------------------------------------------------|
+| Auth/onboarding pages capped at 560px          | ✓ Done | Splash / Login / OTP / KYC / ProfileSetup via `AuthShell` / max-w    |
+| Aadhaar eKYC sub-flow capped at 640px          | ✓ Done | `FlowShell` in `KYCPage`                                             |
+| Remittance stepper content capped              | ✓ Done | RemittancePage stepper band uses `max-w-screen-xl`                   |
+| Emergency hero + grid + hotlines constrained   | ✓ Done | EmergencyAssistancePage `max-w-screen-xl`, responsive 2/3/4 grids    |
+| PreDeparture giant tiles → compact cards       | ✓ Done | `ServiceTile` redesign + `md:grid-cols-4`                            |
+| Home Quick Services centered + responsive      | ✓ Done | Fixed-height cards, `flex-col items-center justify-center`           |
+| Home Safe Migration card no longer orange      | ✓ Done | `from-primary to-primary-dark` gradient                              |
+| Profile page polished cards + spacing          | ✓ Done | Unified `Section` w/ `rounded-3xl`, `divide-y` rows                  |
+| Grievance header content capped                | ✓ Done | `max-w-screen-md`                                                    |
+| Phone validation                                | ✓ Done | `isValidIndianPhone` in LoginPage + ProfileSetup                     |
+| Aadhaar / captcha / consent validation          | ✓ Done | KYCPage Aadhaar flow (rejects dummy values, case-insensitive captcha)|
+| OTP 6-digit validation helper                   | ✓ Done | `isValidOTP` in `validation.js` (reused on demand)                   |
+| DOB-driven age + 18+ gate                       | ✓ Done | ProfileSetup Step 0 with auto-age + `isValidDOB`                     |
+| Location / name validation                      | ✓ Done | ProfileSetup with inline errors                                       |
+| Grievance category + 20-char description gate   | ✓ Done | GrievancePage create-flow                                            |
+| Remittance UPI / IFSC / account validation      | ✓ Done | RemittancePage `RecipientStep` (existing regex)                      |
+| No primary UI uses green/teal as brand          | ✓ Done | Audit run — only `bg-ok` / `text-ok` for semantic success            |
+| Blue `#386AF6` remains the main CTA             | ✓ Done | Buttons / focus / progress bars / selected states                    |
+
+### Known limitations
+- Validation is intentionally light-touch (UI prototype, not a regulated
+  flow). Production must replace `validation.js` with server-side
+  rules + verified bank/UPI/Aadhaar APIs.
+- Some less-trafficked pages (UpdatesPage, PostArrivalPage, ReturnPage,
+  EmploymentPage) still use the simpler `max-w-screen-md` cap — they
+  weren't reflagged as broken in screenshots and don't need master-detail.
+- Mukta / Noto Sans Indic fonts load from Google Fonts at runtime; offline
+  builds need to vendor them.

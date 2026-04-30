@@ -6,6 +6,11 @@ import {
   Fingerprint, FileText, BookUser, Check, ArrowRight, ShieldCheck,
   RefreshCw, X
 } from 'lucide-react'
+import {
+  isValidAadhaar, aadhaarMessage, isValidCaptcha, captchaMessage, isValidOTP, otpMessage,
+} from '../utils/validation'
+
+const CAPTCHA_EXPECTED = '7K9pX2'
 
 const METHODS = [
   { id: 'aadhaar',    icon: Fingerprint, title: 'Aadhaar eKYC', sub: 'Verify via UIDAI · OTP-based' },
@@ -98,6 +103,8 @@ export default function KYCPage() {
 }
 
 // ─── Modal shell ────────────────────────────────────────────────────────────
+// Cap inner content at 640px so the Aadhaar / DigiLocker / APAAR sub-flow
+// inputs and CTAs don't sprawl across the desktop viewport.
 function FlowShell({ title, onClose, children }) {
   return (
     <div className="absolute inset-0 bg-white flex flex-col z-30 animate-slide-in">
@@ -107,7 +114,11 @@ function FlowShell({ title, onClose, children }) {
         </button>
         <div className="flex-1 text-[15px] font-bold text-txt-primary truncate">{title}</div>
       </div>
-      {children}
+      <div className="flex-1 min-h-0 flex justify-center">
+        <div className="w-full max-w-[640px] flex flex-col">
+          {children}
+        </div>
+      </div>
     </div>
   )
 }
@@ -166,56 +177,79 @@ function AadhaarFlow({ onClose, onDone }) {
               </div>
             </div>
 
-            <label className="text-[11px] font-semibold text-txt-secondary uppercase">Aadhaar number</label>
-            <input
-              inputMode="numeric"
-              value={aadhaar.replace(/(\d{4})(?=\d)/g, '$1 ')}
-              onChange={e => setAadhaar(e.target.value.replace(/\D/g, '').slice(0, 12))}
-              placeholder="1234 5678 9012"
-              className="w-full mt-2 border-2 border-bdr rounded-xl px-3 py-3 text-[15px] tracking-wider outline-none focus:border-primary"
-            />
-            <p className="text-[10px] text-txt-tertiary mt-1">Your Aadhaar will be masked after verification.</p>
+            {(() => {
+              const aadhaarValid = isValidAadhaar(aadhaar)
+              const captchaValid = isValidCaptcha(captcha, CAPTCHA_EXPECTED)
+              const aadhaarShowError = aadhaar.length === 12 && !aadhaarValid
+              const captchaShowError = captcha.length >= 4 && !captchaValid
+              const canSubmit = aadhaarValid && captchaValid && consent
+              return (
+                <>
+                  <label className="text-[11px] font-semibold text-txt-secondary uppercase">Aadhaar number</label>
+                  <input
+                    inputMode="numeric"
+                    value={aadhaar.replace(/(\d{4})(?=\d)/g, '$1 ')}
+                    onChange={e => setAadhaar(e.target.value.replace(/\D/g, '').slice(0, 12))}
+                    placeholder="1234 5678 9012"
+                    className={`w-full mt-2 border-2 rounded-xl px-3 py-3 text-[15px] tracking-wider outline-none ${
+                      aadhaarShowError ? 'border-danger' : 'border-bdr focus:border-primary'
+                    }`}
+                  />
+                  <p className={`text-[10px] mt-1 ${aadhaarShowError ? 'text-danger font-semibold' : 'text-txt-tertiary'}`}>
+                    {aadhaarShowError ? aadhaarMessage : 'Your Aadhaar will be masked after verification.'}
+                  </p>
 
-            <label className="text-[11px] font-semibold text-txt-secondary uppercase mt-4 block">Captcha</label>
-            <div className="flex items-center gap-2 mt-2">
-              <div className="flex-1 border-2 border-bdr rounded-xl px-3 py-2.5 bg-surface-secondary font-mono italic text-[16px] tracking-[0.4em] text-txt-primary select-none"
-                   style={{ textDecoration: 'line-through', textDecorationColor: '#A8B4C5' }}>
-                7K9pX2
-              </div>
-              <button onClick={() => {}} className="w-10 h-10 rounded-xl bg-primary-light flex items-center justify-center">
-                <RefreshCw size={16} className="text-primary" />
-              </button>
-            </div>
-            <input
-              value={captcha}
-              onChange={e => setCaptcha(e.target.value)}
-              placeholder="Type the code above"
-              className="w-full mt-2 border-2 border-bdr rounded-xl px-3 py-3 text-[14px] outline-none focus:border-primary"
-            />
+                  <label className="text-[11px] font-semibold text-txt-secondary uppercase mt-4 block">Captcha</label>
+                  <div className="flex items-center gap-2 mt-2">
+                    <div className="flex-1 border-2 border-bdr rounded-xl px-3 py-2.5 bg-surface-secondary font-mono italic text-[16px] tracking-[0.4em] text-txt-primary select-none"
+                         style={{ textDecoration: 'line-through', textDecorationColor: '#A8B4C5' }}>
+                      {CAPTCHA_EXPECTED}
+                    </div>
+                    <button onClick={() => {}} className="w-10 h-10 rounded-xl bg-primary-light flex items-center justify-center">
+                      <RefreshCw size={16} className="text-primary" />
+                    </button>
+                  </div>
+                  <input
+                    value={captcha}
+                    onChange={e => setCaptcha(e.target.value)}
+                    placeholder="Type the code above"
+                    className={`w-full mt-2 border-2 rounded-xl px-3 py-3 text-[14px] outline-none ${
+                      captchaShowError ? 'border-danger' : 'border-bdr focus:border-primary'
+                    }`}
+                  />
+                  {captchaShowError && (
+                    <p className="text-[11px] text-danger font-medium mt-1">{captchaMessage}</p>
+                  )}
 
-            <label className="flex items-start gap-2 mt-5 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={consent}
-                onChange={e => setConsent(e.target.checked)}
-                className="mt-0.5 w-4 h-4 accent-primary flex-shrink-0"
-              />
-              <span className="text-[11px] text-txt-secondary leading-relaxed">
-                I consent to UIDAI sharing my demographic details with{' '}
-                <span className="font-semibold text-txt-primary">Pravasi Setu</span>{' '}
-                for eKYC verification. <span className="text-primary">Read full notice</span>
-              </span>
-            </label>
+                  <label className="flex items-start gap-2 mt-5 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={consent}
+                      onChange={e => setConsent(e.target.checked)}
+                      className="mt-0.5 w-4 h-4 accent-primary flex-shrink-0"
+                    />
+                    <span className="text-[11px] text-txt-secondary leading-relaxed">
+                      I consent to UIDAI sharing my demographic details with{' '}
+                      <span className="font-semibold text-txt-primary">Pravasi Setu</span>{' '}
+                      for eKYC verification. <span className="text-primary">Read full notice</span>
+                    </span>
+                  </label>
+                  {!consent && aadhaarValid && captchaValid && (
+                    <p className="text-[11px] text-danger font-medium mt-1">Please accept consent to continue.</p>
+                  )}
 
-            <div className="mt-6">
-              <button
-                onClick={() => setStep('otp')}
-                disabled={aadhaar.length < 12 || !captcha || !consent}
-                className="w-full bg-primary text-white font-bold text-[14px] py-3 rounded-pill shadow-card disabled:opacity-40"
-              >
-                Send OTP to registered mobile
-              </button>
-            </div>
+                  <div className="mt-6">
+                    <button
+                      onClick={() => canSubmit && setStep('otp')}
+                      disabled={!canSubmit}
+                      className="w-full bg-primary text-white font-bold text-[14px] py-3 rounded-pill shadow-card disabled:bg-primary-200 disabled:cursor-not-allowed"
+                    >
+                      Send OTP to registered mobile
+                    </button>
+                  </div>
+                </>
+              )
+            })()}
           </>
         )}
 

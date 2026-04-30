@@ -35,17 +35,19 @@ export default function PreDeparturePage() {
       <TopBar title="Pre-Departure" sub={`${done} of ${items.length} ready`} dark />
 
       <div className="bg-primary text-white px-5 pb-5">
-        <div className="text-[12px] opacity-80">Departure readiness</div>
-        <div className="text-[28px] font-extrabold leading-tight">{pct}%</div>
-        <div className="h-2 bg-white/20 rounded-full mt-2 overflow-hidden">
-          <div className="h-full bg-accent rounded-full transition-all" style={{ width: `${pct}%` }} />
+        <div className="max-w-screen-lg mx-auto w-full">
+          <div className="text-[12px] opacity-80">Departure readiness</div>
+          <div className="text-[28px] font-extrabold leading-tight">{pct}%</div>
+          <div className="h-2 bg-white/20 rounded-full mt-2 overflow-hidden">
+            <div className="h-full bg-white rounded-full transition-all" style={{ width: `${pct}%` }} />
+          </div>
         </div>
       </div>
 
       <div className="flex-1 overflow-y-auto px-4 py-3 -mt-3 pb-6">
-        <div className="max-w-screen-md mx-auto w-full">
-        {/* Service tiles */}
-        <div className="grid grid-cols-3 gap-2 mb-4">
+        <div className="max-w-screen-lg mx-auto w-full">
+        {/* Service tiles — compact action cards (no aspect-square). */}
+        <div className="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 gap-2 sm:gap-3 mb-4">
           <ServiceTile icon="🏦" label="Loans"        onClick={() => showToast('Loan providers')} />
           <ServiceTile icon="🛡️" label="Insurance (PBBY)" onClick={() => showToast('PBBY insurance')} />
           <ServiceTile icon="💱" label="Forex"        onClick={() => showToast('Forex providers')} />
@@ -54,7 +56,7 @@ export default function PreDeparturePage() {
           <ServiceTile icon="💉" label="Vaccines"     onClick={() => showToast('Diagnostic centers')} />
           <ServiceTile icon="🗣️" label="Language"     onClick={() => showToast('Language basics')} />
           <ServiceTile icon="📜" label="Contract review" onClick={() => showToast('Translated contracts')} />
-          <ServiceTile icon="🚔" label="PCC"           onClick={() => showToast('Police clearance')} />
+          <ServiceTile icon="🚔" label="PCC"          onClick={() => showToast('Police clearance')} />
         </div>
 
         {/* Checklist by category */}
@@ -132,9 +134,14 @@ export default function PreDeparturePage() {
 
 function ServiceTile({ icon, label, onClick }) {
   return (
-    <button onClick={onClick} className="bg-white rounded-card shadow-card p-3 flex flex-col items-center gap-1.5 aspect-square active:scale-[0.97]">
-      <span className="text-[24px]">{icon}</span>
-      <span className="text-[10px] font-semibold text-txt-primary text-center leading-tight">{label}</span>
+    <button
+      onClick={onClick}
+      className="bg-white rounded-card shadow-card border border-bdr-light px-3 py-3 min-h-[88px] sm:min-h-[96px] flex flex-col items-center justify-center gap-2 text-center active:scale-[0.98] hover:border-primary hover:bg-primary-light/40 transition-all"
+    >
+      <span className="text-[22px] leading-none">{icon}</span>
+      <span className="text-[11px] sm:text-[12px] font-bold text-txt-primary leading-tight line-clamp-2">
+        {label}
+      </span>
     </button>
   )
 }

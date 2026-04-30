@@ -19,6 +19,14 @@ export default function GrievancePage() {
   const [creating, setCreating] = useState(false)
   const [cat, setCat] = useState(null)
   const [desc, setDesc] = useState('')
+  const [voiceAttached, setVoiceAttached] = useState(false)
+  const [touched, setTouched] = useState(false)
+
+  const descMin = 20
+  const catError  = !cat ? 'Pick a category to continue.' : null
+  const descError = !voiceAttached && desc.trim().length < descMin
+    ? `Describe what happened (at least ${descMin} characters), or attach a voice note.` : null
+  const canSubmit = !catError && !descError
 
   const submit = () => {
     const id = `PS-${2100 + tickets.length}`
@@ -53,8 +61,9 @@ export default function GrievancePage() {
         <TopBar title="Raise Grievance" closeButton onBack={() => setCreating(false)} />
 
         <div className="flex-1 overflow-y-auto px-4 py-4 pb-24">
+          <div className="max-w-screen-md mx-auto w-full">
           <div className="text-[12px] font-bold text-txt-secondary uppercase mb-2">Category</div>
-          <div className="grid grid-cols-2 gap-2 mb-4">
+          <div className="grid grid-cols-2 gap-2 mb-2">
             {CATEGORIES.map(c => {
               const Icon = c.icon
               const active = cat === c.id
@@ -62,7 +71,7 @@ export default function GrievancePage() {
                 <button
                   key={c.id}
                   onClick={() => setCat(c.id)}
-                  className={`p-3 rounded-card border-2 text-left ${
+                  className={`p-3 rounded-card border-2 text-left transition-colors ${
                     active ? 'border-primary bg-primary-light' : 'border-bdr bg-white'
                   }`}
                 >
@@ -74,9 +83,10 @@ export default function GrievancePage() {
               )
             })}
           </div>
+          {touched && catError && <p className="text-[11px] text-danger font-medium mb-2">{catError}</p>}
 
-          <div className="text-[12px] font-bold text-txt-secondary uppercase mb-2">Describe what happened</div>
-          <div className="bg-white rounded-card border-2 border-bdr p-3">
+          <div className="text-[12px] font-bold text-txt-secondary uppercase mb-2 mt-3">Describe what happened</div>
+          <div className={`bg-white rounded-card border-2 p-3 ${touched && descError ? 'border-danger' : 'border-bdr'}`}>
             <textarea
               value={desc}
               onChange={e => setDesc(e.target.value)}
@@ -85,13 +95,19 @@ export default function GrievancePage() {
               className="w-full text-[13px] outline-none resize-none"
             />
             <div className="flex items-center justify-between mt-2 pt-2 border-t border-bdr-light">
-              <button onClick={() => showToast('Recording...')} className="flex items-center gap-1 text-[11px] font-bold text-primary">
-                <Mic size={14} /> Voice note
+              <button
+                onClick={() => { setVoiceAttached(true); showToast('Voice note recorded') }}
+                className={`flex items-center gap-1 text-[11px] font-bold ${voiceAttached ? 'text-ok' : 'text-primary'}`}
+              >
+                <Mic size={14} /> {voiceAttached ? 'Voice note attached ✓' : 'Voice note'}
               </button>
               <button onClick={() => showToast('Photo attached')} className="text-[11px] font-bold text-primary">
                 + Attach evidence
               </button>
             </div>
+            <div className="text-[10px] text-txt-tertiary mt-1">{desc.trim().length}/{descMin} characters minimum</div>
+          </div>
+          {touched && descError && <p className="text-[11px] text-danger font-medium mt-1">{descError}</p>}
           </div>
 
           <div className="mt-4 p-3 bg-info-light rounded-xl">
@@ -110,9 +126,9 @@ export default function GrievancePage() {
             <Phone size={14} /> Emergency
           </button>
           <button
-            onClick={submit}
-            disabled={!cat || !desc}
-            className="flex-1 bg-primary text-white font-bold text-[13px] py-3 rounded-pill disabled:opacity-40 flex items-center justify-center gap-1"
+            onClick={() => { setTouched(true); if (canSubmit) submit() }}
+            disabled={!canSubmit}
+            className="flex-1 bg-primary text-white font-bold text-[13px] py-3 rounded-pill disabled:bg-primary-200 disabled:cursor-not-allowed flex items-center justify-center gap-1"
           >
             <Send size={14} /> Submit
           </button>
@@ -127,22 +143,24 @@ export default function GrievancePage() {
       <TopBar title="Grievance Redressal" sub="Safe escalation · 24×7 support" dark />
 
       <div className="bg-primary text-white px-5 pb-5">
-        <p className="text-[12px] opacity-90 mb-3">
-          You're not alone. Raise grievances against employers, agents or unsafe conditions — we route to the right authority.
-        </p>
-        <div className="flex gap-2">
-          <button
-            onClick={() => navigate('emergency')}
-            className="flex-1 bg-danger rounded-pill py-3 font-bold text-[13px] flex items-center justify-center gap-2"
-          >
-            <Phone size={14} /> Emergency Help
-          </button>
-          <button
-            onClick={() => setCreating(true)}
-            className="flex-1 bg-white text-primary rounded-pill py-3 font-bold text-[13px] flex items-center justify-center gap-2"
-          >
-            <Plus size={14} /> Raise New
-          </button>
+        <div className="max-w-screen-md mx-auto w-full">
+          <p className="text-[12px] opacity-90 mb-3">
+            You're not alone. Raise grievances against employers, agents or unsafe conditions — we route to the right authority.
+          </p>
+          <div className="flex gap-2">
+            <button
+              onClick={() => navigate('emergency')}
+              className="flex-1 bg-danger rounded-pill py-3 font-bold text-[13px] flex items-center justify-center gap-2 hover:bg-danger/90 transition-colors"
+            >
+              <Phone size={14} /> Emergency Help
+            </button>
+            <button
+              onClick={() => setCreating(true)}
+              className="flex-1 bg-white text-primary rounded-pill py-3 font-bold text-[13px] flex items-center justify-center gap-2 hover:bg-primary-50 transition-colors"
+            >
+              <Plus size={14} /> Raise New
+            </button>
+          </div>
         </div>
       </div>
 

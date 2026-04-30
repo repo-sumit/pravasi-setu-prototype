@@ -3,8 +3,12 @@ import { useApp } from '../context/AppContext'
 import StatusBar from '../components/StatusBar'
 import TopBar from '../components/TopBar'
 import {
-  User, Phone, MapPin, GraduationCap, Wrench, Plus, X, Check, ArrowRight, Sparkles, ShieldCheck
+  User, Phone, MapPin, GraduationCap, Wrench, Plus, X, Check, ArrowRight, Sparkles, ShieldCheck, Calendar
 } from 'lucide-react'
+import {
+  isValidName, nameMessage, isValidIndianPhone, phoneMessage,
+  isValidLocation, locationMessage, isValidDOB, dobMessage, getAgeFromDOB,
+} from '../utils/validation'
 
 const SKILL_OPTIONS = [
   'Electrician', 'Plumbing', 'Welding', 'Carpentry', 'Mason', 'Driver', 'Helper',
@@ -16,10 +20,11 @@ const STEPS = ['Basic', 'Education', 'Skills', 'Preferences', 'Review']
 export default function ProfileSetupPage() {
   const { profile, setProfile, navigate, showToast } = useApp()
   const [step, setStep] = useState(0)
+  const [touched, setTouched] = useState({})
   const [form, setForm] = useState({
     name: profile.name || '',
     phone: profile.phone || '',
-    age: profile.age || '',
+    dob: profile.dob || '',
     gender: profile.gender || 'Male',
     location: profile.location || '',
     education: profile.education || '10th Pass',
@@ -28,6 +33,16 @@ export default function ProfileSetupPage() {
     preferredCountry: 'UAE',
     preferredSalary: 50000,
   })
+
+  const computedAge = getAgeFromDOB(form.dob)
+  const errors = {
+    name:     !isValidName(form.name)               ? nameMessage     : null,
+    phone:    !isValidIndianPhone(form.phone)       ? phoneMessage    : null,
+    dob:      !isValidDOB(form.dob)                 ? dobMessage      : null,
+    location: !isValidLocation(form.location)       ? locationMessage : null,
+  }
+  const showErr = (k) => touched[k] && errors[k]
+  const markTouched = (k) => setTouched(t => ({ ...t, [k]: true }))
 
   const update = (k, v) => setForm(f => ({ ...f, [k]: v }))
   const toggleSkill = (s) => setForm(f => ({
@@ -43,7 +58,8 @@ export default function ProfileSetupPage() {
       ...p,
       name: form.name,
       phone: form.phone,
-      age: +form.age || p.age,
+      dob: form.dob,
+      age: computedAge ?? p.age,
       gender: form.gender,
       location: form.location,
       education: form.education,
@@ -57,7 +73,7 @@ export default function ProfileSetupPage() {
   }
 
   const canNext = (() => {
-    if (step === 0) return form.name && form.phone && form.age && form.location
+    if (step === 0) return !errors.name && !errors.phone && !errors.dob && !errors.location
     if (step === 1) return !!form.education
     if (step === 2) return form.skills.length > 0
     if (step === 3) return !!form.preferredCountry
@@ -81,24 +97,54 @@ export default function ProfileSetupPage() {
         <div className="w-full max-w-[560px]">
         {step === 0 && (
           <Section title="Tell us about yourself" sub="This builds your verified migrant profile">
-            <Field label="Full name" icon={User}>
-              <input value={form.name} onChange={e => update('name', e.target.value)} className={INPUT} placeholder="As per Aadhaar" />
+            <Field label="Full name" icon={User} error={showErr('name')}>
+              <input
+                value={form.name}
+                onChange={e => update('name', e.target.value)}
+                onBlur={() => markTouched('name')}
+                className={inputCls(showErr('name'))}
+                placeholder="As per Aadhaar"
+              />
             </Field>
-            <Field label="Phone" icon={Phone}>
-              <input value={form.phone} onChange={e => update('phone', e.target.value)} className={INPUT} placeholder="+91" />
+            <Field label="Phone" icon={Phone} error={showErr('phone')}>
+              <input
+                inputMode="numeric"
+                value={form.phone}
+                onChange={e => update('phone', e.target.value)}
+                onBlur={() => markTouched('phone')}
+                className={inputCls(showErr('phone'))}
+                placeholder="+91 98765 43210"
+              />
             </Field>
             <div className="grid grid-cols-2 gap-3">
-              <Field label="Age">
-                <input type="number" value={form.age} onChange={e => update('age', e.target.value)} className={INPUT} />
+              <Field label="Date of birth" icon={Calendar} error={showErr('dob')}>
+                <input
+                  type="date"
+                  value={form.dob}
+                  onChange={e => update('dob', e.target.value)}
+                  onBlur={() => markTouched('dob')}
+                  max={new Date().toISOString().slice(0, 10)}
+                  className={inputCls(showErr('dob'))}
+                />
               </Field>
               <Field label="Gender">
-                <select value={form.gender} onChange={e => update('gender', e.target.value)} className={INPUT}>
+                <select value={form.gender} onChange={e => update('gender', e.target.value)} className={inputCls()}>
                   {['Male','Female','Other'].map(g => <option key={g}>{g}</option>)}
                 </select>
               </Field>
             </div>
-            <Field label="Home district / state" icon={MapPin}>
-              <input value={form.location} onChange={e => update('location', e.target.value)} className={INPUT} placeholder="Lucknow, Uttar Pradesh" />
+            <Field label={`Age${computedAge != null ? ` · ${computedAge} yrs (auto-calculated)` : ''}`}>
+              <input value={computedAge ?? ''} readOnly placeholder="Filled from DOB"
+                className={`${inputCls()} bg-surface-secondary text-txt-secondary`} />
+            </Field>
+            <Field label="Home district / state" icon={MapPin} error={showErr('location')}>
+              <input
+                value={form.location}
+                onChange={e => update('location', e.target.value)}
+                onBlur={() => markTouched('location')}
+                className={inputCls(showErr('location'))}
+                placeholder="Lucknow, Uttar Pradesh"
+              />
             </Field>
           </Section>
         )}
@@ -195,7 +241,7 @@ export default function ProfileSetupPage() {
             <Card>
               <Row label="Name"      value={form.name} />
               <Row label="Phone"     value={form.phone} />
-              <Row label="Age · Gender" value={`${form.age} · ${form.gender}`} />
+              <Row label="Age · Gender" value={`${computedAge ?? '—'} · ${form.gender}`} />
               <Row label="Home"      value={form.location} />
               <Row label="Education" value={form.education} />
               <Row label="Skills"    value={form.skills.join(', ') || '—'} />
@@ -218,9 +264,12 @@ export default function ProfileSetupPage() {
         )}
         {step < STEPS.length - 1 ? (
           <button
-            onClick={() => canNext && setStep(s => s + 1)}
+            onClick={() => {
+              if (step === 0) setTouched({ name: true, phone: true, dob: true, location: true })
+              if (canNext) setStep(s => s + 1)
+            }}
             disabled={!canNext}
-            className="flex-1 bg-primary text-white font-bold text-[14px] py-3 rounded-pill flex items-center justify-center gap-2 disabled:opacity-40"
+            className="flex-1 bg-primary text-white font-bold text-[14px] py-3 rounded-pill flex items-center justify-center gap-2 disabled:bg-primary-200 disabled:cursor-not-allowed"
           >
             Next <ArrowRight size={16} />
           </button>
@@ -236,6 +285,12 @@ export default function ProfileSetupPage() {
 
 const INPUT = 'w-full mt-1 border-2 border-bdr rounded-xl px-3 py-3 text-[13px] outline-none focus:border-primary bg-white'
 
+function inputCls(hasError) {
+  return `w-full mt-1 border-2 rounded-xl px-3 py-3 text-[13px] outline-none bg-white ${
+    hasError ? 'border-danger' : 'border-bdr focus:border-primary'
+  }`
+}
+
 function Section({ title, sub, children }) {
   return (
     <div>
@@ -246,13 +301,14 @@ function Section({ title, sub, children }) {
   )
 }
 
-function Field({ label, icon: Icon, children }) {
+function Field({ label, icon: Icon, error, children }) {
   return (
     <div className="mb-3">
       <label className="text-[11px] font-semibold text-txt-secondary uppercase flex items-center gap-1">
         {Icon && <Icon size={12} />} {label}
       </label>
       {children}
+      {error && <p className="text-[11px] text-danger font-medium mt-1">{error}</p>}
     </div>
   )
 }

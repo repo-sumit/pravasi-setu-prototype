@@ -3,11 +3,15 @@ import { useApp } from '../context/AppContext'
 import LogoLockup from '../components/LogoLockup'
 import AuthShell from '../components/AuthShell'
 import PartnerStrip from '../components/PartnerStrip'
+import { isValidIndianPhone, phoneMessage } from '../utils/validation'
 import { Phone, Fingerprint, ArrowRight, ShieldCheck } from 'lucide-react'
 
 export default function LoginPage() {
   const { navigate } = useApp()
   const [phone, setPhone] = useState('')
+  const [touched, setTouched] = useState(false)
+  const phoneValid = isValidIndianPhone(phone)
+  const showError = touched && phone && !phoneValid
 
   return (
     <AuthShell>
@@ -26,21 +30,27 @@ export default function LoginPage() {
 
       <div>
         <label className="text-[12px] font-semibold text-txt-secondary uppercase tracking-wide">Mobile number</label>
-        <div className="flex items-center mt-2 border-2 border-bdr rounded-pill px-4 focus-within:border-primary focus-within:shadow-focus transition-colors">
+        <div className={`flex items-center mt-2 border-2 rounded-pill px-4 transition-colors focus-within:shadow-focus ${
+          showError ? 'border-danger' : 'border-bdr focus-within:border-primary'
+        }`}>
           <span className="text-[14px] font-semibold text-txt-secondary mr-2">+91</span>
           <input
             inputMode="numeric"
             value={phone}
             onChange={e => setPhone(e.target.value.replace(/\D/g, '').slice(0, 10))}
+            onBlur={() => setTouched(true)}
             placeholder="98765 43210"
             className="flex-1 py-3 text-[15px] outline-none bg-transparent"
           />
-          <Phone size={16} className="text-txt-tertiary" />
+          <Phone size={16} className={showError ? 'text-danger' : 'text-txt-tertiary'} />
         </div>
+        {showError && (
+          <p className="text-[12px] font-medium text-danger mt-1.5">{phoneMessage}</p>
+        )}
 
         <button
-          onClick={() => navigate('otp')}
-          disabled={phone.length < 10}
+          onClick={() => { setTouched(true); if (phoneValid) navigate('otp') }}
+          disabled={!phoneValid}
           className="w-full mt-5 bg-primary hover:bg-primary-dark text-white font-bold text-[15px] py-3.5 rounded-pill shadow-modal active:opacity-90 disabled:bg-primary-200 disabled:cursor-not-allowed flex items-center justify-center gap-2 transition-colors"
         >
           Send OTP <ArrowRight size={18} />
