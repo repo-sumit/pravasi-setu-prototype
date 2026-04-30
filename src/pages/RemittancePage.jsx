@@ -8,11 +8,13 @@ import PartnerStrip from '../components/PartnerStrip'
 import {
   RECIPIENTS, PAYOUT_METHODS, FUNDING_METHODS, REMITTANCE_PROVIDERS,
   SOURCE_COUNTRIES, TRANSFER_PURPOSES,
+  AFFILIATED_PAYOUT_BANKS, CASH_PICKUP_AGENTS,
 } from '../data/mockData'
 import {
   ArrowDownUp, Send, Clock, ShieldCheck, ChevronRight, CheckCircle2, Lock,
   Building2, Smartphone, MapPin, BadgeCheck, BellRing, Share2, Download,
   AlertTriangle, ChevronLeft, Plus, User as UserIcon, Receipt, Bookmark,
+  HelpCircle, X,
 } from 'lucide-react'
 
 /* SwiftChat-aligned multi-step inward remittance flow.
@@ -27,6 +29,7 @@ const PAYOUT_ICON = { UPI: Smartphone, BANK: Building2, CASH: MapPin }
 export default function RemittancePage() {
   const { showToast, navigate, addTransfer, transfers, profile } = useApp()
   const [step, setStep] = useState(0)
+  const [showHelp, setShowHelp] = useState(false)
 
   // ── Quote
   const [sourceCode, setSourceCode] = useState('AE')
@@ -130,6 +133,7 @@ export default function RemittancePage() {
         sub={confirmedTransferId ? `Transfer ${confirmedTransferId}` : `Step ${Math.min(step + 1, 6)} of 6`}
         dark
         onBack={step > 0 && step < 6 ? () => setStep(s => s - 1) : undefined}
+        actions={[{ icon: <HelpCircle size={18} />, onClick: () => setShowHelp(true), label: 'How to send' }]}
       />
 
       {/* Stepper — full-width blue band, content capped to xl. */}
@@ -202,6 +206,8 @@ export default function RemittancePage() {
           </div>
         </div>
       </div>
+
+      {showHelp && <HowToSendDrawer onClose={() => setShowHelp(false)} />}
 
       {/* Footer actions */}
       {step < 6 && (
@@ -444,6 +450,23 @@ function RecipientStep(props) {
 
         {payout === 'BANK' && (
           <>
+            <Field label="Affiliated Indian banks">
+              <div className="flex gap-1.5 flex-wrap mt-1">
+                {AFFILIATED_PAYOUT_BANKS.map(b => (
+                  <a
+                    key={b.id}
+                    href={b.website}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="px-2.5 py-1 rounded-pill bg-primary-50 text-primary text-[11px] font-bold border border-primary/20 hover:bg-primary-100"
+                    title={b.name}
+                  >
+                    {b.name}{b.supportsInstant ? ' ⚡' : ''}
+                  </a>
+                ))}
+              </div>
+              <p className="text-[10px] text-txt-tertiary mt-1">⚡ supports instant credit. We confirm the recipient name with the bank before transferring.</p>
+            </Field>
             <Field label="Full name (as per bank)">
               <div className="text-[14px] font-semibold text-txt-primary">{recipient.fullName}</div>
             </Field>
@@ -493,13 +516,25 @@ function RecipientStep(props) {
               />
             </Field>
             <Field label="Pickup partner">
-              <select
-                className="w-full border-2 border-bdr rounded-xl px-3 py-3 text-[14px] outline-none focus:border-primary bg-white"
-              >
-                <option>Western Union — Hazratganj</option>
-                <option>MoneyGram — Aminabad</option>
-                <option>India Post — Lalbagh</option>
-              </select>
+              <div className="space-y-2">
+                {CASH_PICKUP_AGENTS.filter(a => !pickupCity || a.city.toLowerCase().includes(pickupCity.toLowerCase().slice(0, 4))).slice(0, 4).map(a => (
+                  <div key={a.id} className="rounded-card border border-bdr p-3">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex-1 min-w-0">
+                        <div className="text-[13px] font-bold text-txt-primary truncate">{a.name}</div>
+                        <div className="text-[11px] text-txt-secondary">{a.address} · {a.city}</div>
+                        <div className="text-[10px] text-txt-tertiary">📞 {a.contact} · {a.hours}</div>
+                      </div>
+                    </div>
+                    <div className="text-[10px] text-txt-tertiary mt-1">Receiver carries: {a.documents.join(' + ')}</div>
+                  </div>
+                ))}
+                {CASH_PICKUP_AGENTS.filter(a => !pickupCity || a.city.toLowerCase().includes(pickupCity.toLowerCase().slice(0, 4))).length === 0 && (
+                  <div className="rounded-card border border-warn bg-warn-light p-3 text-[11px] text-warn-text">
+                    No partner agents in {pickupCity}. Try a nearby major city.
+                  </div>
+                )}
+              </div>
             </Field>
             <p className="text-[11px] text-txt-secondary mt-1">Receiver must carry a valid government ID and the pickup code we send by SMS.</p>
           </>
@@ -717,6 +752,39 @@ function KV({ k, v, highlight }) {
     <div className={`flex items-start justify-between gap-3 py-2 border-b border-bdr-light last:border-0 ${highlight ? 'bg-primary-50 -mx-2 px-2 rounded-lg border-0' : ''}`}>
       <span className="text-[12px] text-txt-secondary">{k}</span>
       <span className={`text-[13px] font-bold text-right ${highlight ? 'text-primary' : 'text-txt-primary'}`}>{v}</span>
+    </div>
+  )
+}
+
+function HowToSendDrawer({ onClose }) {
+  return (
+    <div className="absolute inset-0 z-40 flex items-end sm:items-center justify-center bg-black/40" onClick={onClose}>
+      <div
+        onClick={e => e.stopPropagation()}
+        className="bg-white w-full sm:max-w-[560px] rounded-t-3xl sm:rounded-2xl p-6 max-h-[85vh] overflow-y-auto animate-slide-in"
+      >
+        <div className="flex items-center justify-between mb-3">
+          <div className="text-[18px] font-extrabold text-txt-primary">How to send money home</div>
+          <button onClick={onClose} className="w-9 h-9 rounded-full bg-surface-secondary flex items-center justify-center"><X size={18} /></button>
+        </div>
+        <ol className="space-y-3 text-[12px] text-txt-secondary leading-relaxed list-decimal pl-5">
+          <li><b className="text-txt-primary">Compare provider rate and fee.</b> The provider with the highest "recipient gets" usually wins — but check settlement time too.</li>
+          <li><b className="text-txt-primary">Add recipient details.</b> UPI ID for fastest, bank account+IFSC for traceable, or cash pickup for unbanked family.</li>
+          <li><b className="text-txt-primary">Verify your identity.</b> Aadhaar eKYC or DigiLocker — already done if you finished onboarding.</li>
+          <li><b className="text-txt-primary">Pay from card, bank transfer, wallet or agent.</b> Each method has a different cutoff time.</li>
+          <li><b className="text-txt-primary">Track until delivered.</b> Open My Transfers any time to see status, share receipt, or call provider support.</li>
+        </ol>
+
+        <div className="mt-4 p-3 rounded-xl bg-warn-light text-warn-text text-[11px]">
+          <b>Avoid scams.</b> Only send to people you know. Do not send money for jobs, lottery winnings, visa promises, crypto investments, or unknown callers.
+        </div>
+        <div className="mt-2 p-3 rounded-xl bg-info-light text-info text-[11px]">
+          <b>Fee + FX disclosure.</b> Every provider tag (Prototype partner / Mock regulated partner / Integration-ready) is mock for the prototype. Real transfers must use a licensed MTSS / RDA / NPCI partner under RBI guidance.
+        </div>
+        <div className="mt-2 p-3 rounded-xl bg-danger-light text-danger text-[11px]">
+          <b>Confirm recipient details carefully.</b> Wrong UPI / IFSC / bank account may delay the transfer or require a refund.
+        </div>
+      </div>
     </div>
   )
 }

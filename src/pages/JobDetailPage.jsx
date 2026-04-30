@@ -10,31 +10,12 @@ import {
 } from 'lucide-react'
 
 export default function JobDetailPage() {
-  const { params, navigate, showToast, addApplication, applications } = useApp()
+  const { params, navigate, showToast } = useApp()
   const job = JOBS.find(j => j.id === params.jobId) || JOBS[0]
 
-  const apply = () => {
-    const id = `APP-${3100 + applications.length}`
-    addApplication({
-      id,
-      jobId: job.id,
-      employerName: job.employerName,
-      role: job.title,
-      city: job.destinationCity,
-      appliedOn: new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }),
-      status: 'Application submitted',
-      nextStep: 'Recruiter to review profile within 48 hrs',
-      timeline: [
-        { step: 'Application submitted', date: 'Just now', done: true, current: true },
-        { step: 'Profile shortlisted',    date: 'Pending', done: false },
-        { step: 'Interview scheduled',    date: 'Pending', done: false },
-        { step: 'Offer letter',           date: 'Pending', done: false },
-        { step: 'Visa & travel',          date: 'Pending', done: false },
-      ],
-    })
-    showToast(`Application ${id} submitted`)
-    navigate('applicationTracker', { applicationId: id })
-  }
+  // Apply Now hands off to JobApplyChoicePage so the user can pick between
+  // Swift Apply (verified profile) and a manual application form.
+  const apply = () => navigate('jobApplyChoice', { jobId: job.id })
 
   return (
     <div className="flex-1 flex flex-col bg-surface-secondary overflow-hidden">

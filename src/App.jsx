@@ -28,6 +28,10 @@ import TicketDetailPage            from './pages/TicketDetailPage'
 import EmergencyAssistancePage     from './pages/EmergencyAssistancePage'
 import ChatPage                    from './pages/ChatPage'
 import UpdatesPage                 from './pages/UpdatesPage'
+import LoansPage                   from './pages/LoansPage'
+import InsurancePage               from './pages/InsurancePage'
+import TravelPage                  from './pages/TravelPage'
+import JobApplyChoicePage          from './pages/JobApplyChoicePage'
 
 const ROUTES = {
   splash:                  SplashPage,
@@ -56,6 +60,10 @@ const ROUTES = {
   emergency:               EmergencyAssistancePage,
   chat:                    ChatPage,
   updates:                 UpdatesPage,
+  loans:                   LoansPage,
+  insurance:               InsurancePage,
+  travel:                  TravelPage,
+  jobApplyChoice:          JobApplyChoicePage,
 }
 
 function AppRoutes() {

@@ -179,3 +179,76 @@ screen (params included). Examples verified: `transferTracker?transferId=`,
 - Sign Out wipes user data, returns to Login.
 - No content card stretches edge-to-edge on desktop.
 - No orange/teal as brand color; semantic green only for completed.
+
+---
+
+## 2026-04-30 (financial services sprint)
+
+Added the **Financial & Mobility Services layer** per
+[PRAVASI_New_Features_Product_Spec.md](../PRAVASI_New_Features_Product_Spec.md).
+See [FINANCIAL_SERVICES_FLOW.md](FINANCIAL_SERVICES_FLOW.md) for the
+detailed acceptance breakdown.
+
+### New pages
+- [LoansPage.jsx](../src/pages/LoansPage.jsx) — Need builder → docs →
+  provider compare → consent → submit → tracker. Routes: `loans`,
+  `loans?loanId=…` (detail), `loans?mode=list` (My Loans).
+- [InsurancePage.jsx](../src/pages/InsurancePage.jsx) — Marketplace
+  with Insurance / Claims / Complaint / Talk-to-someone tabs, plan
+  comparison, plan detail, payment, policy detail. Routes: `insurance`,
+  `insurance?policyId=…`, `insurance?mode=list`, `insurance?category=PBBY`.
+- [TravelPage.jsx](../src/pages/TravelPage.jsx) — Search → flight options
+  → passenger → payment → confirmation, with deterministic mock flight
+  generation, mock PNR, and T-3/T-1 day reminders saved on the booking.
+  Routes: `travel`, `travel?bookingId=…`, `travel?mode=list`.
+- [JobApplyChoicePage.jsx](../src/pages/JobApplyChoicePage.jsx) — Swift
+  Apply (verified profile) vs Manual entry. JobDetailPage Apply Now CTA
+  now routes here. Manual submissions are saved to both `applications`
+  (so they appear in the existing tracker) and `manualApplications` (for
+  audit / re-review).
+
+### Data + utils
+- mockData.js extended with `LOAN_NEED_CATEGORIES`, `LOAN_DOCUMENTS`,
+  `LOAN_PROVIDERS`, `INSURANCE_CATEGORIES`, `INSURANCE_PROVIDERS`,
+  `INSURANCE_PLANS`, `AIRPORTS`, `FLIGHT_PROVIDERS`,
+  `TRAVEL_PAYMENT_METHODS`, `AFFILIATED_PAYOUT_BANKS`,
+  `CASH_PICKUP_AGENTS`.
+- New [src/utils/financeCalculations.js](../src/utils/financeCalculations.js)
+  with `calculateEMI`, `totalPayable`, `totalInterest`, `emiAffordability`,
+  `formatINR`.
+
+### AppContext + storage
+- 5 new persisted slices with hydration, save-on-change `useEffect`s, and
+  matching mutators: `loanApplications`, `insurancePolicies`,
+  `travelBookings`, `manualApplications`, `beneficiaries`. All five keys
+  added to `STORAGE_KEYS` and wiped by `clearSession()` / `signOut()`.
+
+### Cross-page wiring
+- **PreDeparture** service tiles now navigate: Loans → `loans`,
+  Insurance (PBBY) → `insurance?category=PBBY`, Forex → `remittance`,
+  Tickets → `travel`. Toast-only stubs remain only for vaccines / visa /
+  contract review.
+- **Profile** gained a "My Services" section with My Loans / My Insurance /
+  My Travel Tickets / My Transfers / My Beneficiaries / My Applications,
+  showing live counts from context.
+- **HomePage** quick tiles now include Loans / Insurance / Travel.
+- **JobDetail** Apply Now now routes to `jobApplyChoice` with `jobId`.
+- **ChatPage** intents extended for migration loan, EMI, loan status,
+  loan documents, buy/get insurance, PBBY, insurance claim, my insurance,
+  book/find flight, my ticket, travel reminder, Swift Apply, manual
+  application, eMigrate verified jobs.
+
+### Remittance enhancements
+- `HelpCircle` action in TopBar opens a "How to send money" drawer with
+  the 5-step process, fraud/recipient/refund warnings, and prototype
+  partner disclosure.
+- Bank-payout recipient step lists the 8 affiliated banks as
+  hyperlink-style chips with instant-credit indicators.
+- Cash-payout recipient step shows agent cards (name, address, contact,
+  hours, document requirements) filtered by pickup city.
+
+### i18n note
+The spec asked to update `src/i18n/translations/{en,hi,ml,ta,bn,or}.json`,
+but no `src/i18n` folder currently exists in the prototype. New strings
+are literal English (matching every other page in the codebase). Adding
+i18n is a separate sprint.

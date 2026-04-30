@@ -6,15 +6,20 @@
 
 const NS = 'pravasi'
 export const STORAGE_KEYS = {
-  session:      `${NS}_session`,        // { isAuthenticated, hasCompletedOnboarding, kycStatus, createdAt }
-  profile:      `${NS}_profile`,        // user profile object
-  appState:     `${NS}_app_state`,      // { lastRoute, lastParams }
-  language:     `${NS}_language`,
-  applications: `${NS}_applications`,
-  transfers:    `${NS}_transfers`,
-  tickets:      `${NS}_tickets`,
-  certificates: `${NS}_certificates`,
-  checklist:    `${NS}_checklist`,
+  session:            `${NS}_session`,
+  profile:            `${NS}_profile`,
+  appState:           `${NS}_app_state`,
+  language:           `${NS}_language`,
+  applications:       `${NS}_applications`,
+  transfers:          `${NS}_transfers`,
+  tickets:            `${NS}_tickets`,
+  certificates:       `${NS}_certificates`,
+  checklist:          `${NS}_checklist`,
+  loanApplications:   `${NS}_loan_applications`,
+  insurancePolicies:  `${NS}_insurance_policies`,
+  travelBookings:     `${NS}_travel_bookings`,
+  manualApplications: `${NS}_manual_applications`,
+  beneficiaries:      `${NS}_beneficiaries`,
 }
 
 const hasStorage = (() => {
@@ -65,6 +70,11 @@ export function clearSession() {
   remove(STORAGE_KEYS.tickets)
   remove(STORAGE_KEYS.certificates)
   remove(STORAGE_KEYS.checklist)
+  remove(STORAGE_KEYS.loanApplications)
+  remove(STORAGE_KEYS.insurancePolicies)
+  remove(STORAGE_KEYS.travelBookings)
+  remove(STORAGE_KEYS.manualApplications)
+  remove(STORAGE_KEYS.beneficiaries)
 }
 
 // ── Profile ────────────────────────────────────────────────────────────────

@@ -6,7 +6,7 @@ import { JOBS, SUGGESTED_PROMPTS } from '../data/mockData'
 import {
   Mic, Send, Bot, ChevronRight, Briefcase, AlertTriangle, Calculator, Send as SendIcon,
   ShieldCheck, Phone, FileBadge, User as UserIcon, Award, Building2, Wallet,
-  Plane, Home as HomeIcon, RotateCcw, MessageCircle, Stethoscope, Languages, Receipt
+  Plane, Home as HomeIcon, RotateCcw, MessageCircle, Stethoscope, Languages, Receipt,
 } from 'lucide-react'
 
 const INITIAL = [
@@ -98,10 +98,94 @@ function buildIntents(JOBS) {
       ],
     },
     {
-      keys: ['loan', 'pravasi loan', 'migration loan'],
+      keys: ['need a loan', 'migration loan', 'i need a loan', 'pravasi loan', 'loan for visa', 'loan for travel', 'loan for housing', 'loan for skilling', 'apply for loan'],
       reply: () => [
-        { from: 'bot', kind: 'text', text: 'SBI Pravasi Loan offers up to ₹3,00,000 at 10.5% p.a., no collateral up to ₹2L. EMI starts after 3 months.' },
-        { from: 'bot', kind: 'action', label: 'See loan partners', icon: Wallet, target: 'predeparture' },
+        { from: 'bot', kind: 'text', text: 'I can help you compare migration loans by interest, EMI and relaxation period. Pick the loan need and I\'ll show banks that fit.' },
+        { from: 'bot', kind: 'action', label: 'Open Loans', icon: Wallet, target: 'loans' },
+      ],
+    },
+    {
+      keys: ['emi', 'how much emi', 'show emi', 'monthly emi'],
+      reply: () => [
+        { from: 'bot', kind: 'text', text: 'EMI depends on amount, tenure and lender rate. SBI 10.5% p.a. for 24 months on ₹1,00,000 ≈ ₹4,628/mo. Open Loans → Compare to see live numbers.' },
+        { from: 'bot', kind: 'action', label: 'Compare loans', icon: Wallet, target: 'loans' },
+      ],
+    },
+    {
+      keys: ['loan status', 'check loan', 'my loan', 'my loans'],
+      reply: () => [
+        { from: 'bot', kind: 'text', text: 'Open My Loans to see active applications, EMI schedule and lender contact.' },
+        { from: 'bot', kind: 'action', label: 'My Loans', icon: Wallet, target: 'loans', params: { mode: 'list' } },
+      ],
+    },
+    {
+      keys: ['loan documents', 'documents for loan', 'loan paper'],
+      reply: () => [
+        { from: 'bot', kind: 'text', text: 'Lenders typically need Aadhaar, passport and a job contract. Visa, tickets and PCC speed up approval.' },
+        { from: 'bot', kind: 'action', label: 'Build a loan need', icon: Wallet, target: 'loans' },
+      ],
+    },
+    {
+      keys: ['buy insurance', 'get insurance', 'insurance', 'pbby', 'family health insurance', 'travel insurance'],
+      reply: () => [
+        { from: 'bot', kind: 'text', text: 'Browse insurance by category — PBBY (mandatory for ECR), Travel, Health, Life, Family Health and Child Savings. Compare premium, coverage and claim support.' },
+        { from: 'bot', kind: 'action', label: 'Open Insurance', icon: ShieldCheck, target: 'insurance' },
+      ],
+    },
+    {
+      keys: ['insurance claim', 'file insurance', 'file claim'],
+      reply: () => [
+        { from: 'bot', kind: 'text', text: 'Open My Insurance to start a claim against an active policy. Helpline numbers are listed on the policy detail page.' },
+        { from: 'bot', kind: 'action', label: 'My Insurance', icon: ShieldCheck, target: 'insurance', params: { mode: 'list' } },
+      ],
+    },
+    {
+      keys: ['my insurance', 'show my insurance', 'my polic'],
+      reply: () => [
+        { from: 'bot', kind: 'text', text: 'Here are your insurance policies — tap any to view details, file a claim, or download the policy PDF.' },
+        { from: 'bot', kind: 'action', label: 'My Insurance', icon: ShieldCheck, target: 'insurance', params: { mode: 'list' } },
+      ],
+    },
+    {
+      keys: ['book ticket', 'book my ticket', 'find flight', 'flights to dubai', 'travel options', 'pay for ticket'],
+      reply: () => [
+        { from: 'bot', kind: 'text', text: 'Pick origin / destination airport, dates and passenger details — then pay by UPI, EMI or bank transfer.' },
+        { from: 'bot', kind: 'action', label: 'Book travel', icon: Plane, target: 'travel' },
+      ],
+    },
+    {
+      keys: ['my ticket', 'show ticket', 'when is my flight', 'travel reminder'],
+      reply: () => [
+        { from: 'bot', kind: 'text', text: 'Open My Travel for ticket details, reminders and the timeline.' },
+        { from: 'bot', kind: 'action', label: 'My Travel', icon: Plane, target: 'travel', params: { mode: 'list' } },
+      ],
+    },
+    {
+      keys: ['swift apply', 'apply with my profile', 'pravasi profile'],
+      reply: () => [
+        { from: 'bot', kind: 'text', text: 'Swift Apply uses your verified Pravasi profile, Skill Passport and certificates — recruiters get a complete file in one tap. Open a job and tap Apply Now to choose Swift Apply or Manual.' },
+        { from: 'bot', kind: 'action', label: 'Browse jobs', icon: Briefcase, target: 'jobs' },
+      ],
+    },
+    {
+      keys: ['manual application', 'apply manually'],
+      reply: () => [
+        { from: 'bot', kind: 'text', text: 'Manual applications take a bit longer to review. Tap Apply Now on any job and pick "Manual entry".' },
+        { from: 'bot', kind: 'action', label: 'Browse jobs', icon: Briefcase, target: 'jobs' },
+      ],
+    },
+    {
+      keys: ['emigrate', 'verified jobs', 'safe migration route'],
+      reply: () => [
+        { from: 'bot', kind: 'text', text: 'Pravasi Setu lists eMigrate-compatible employers with verification badges. Flagged employers are removed from search.' },
+        { from: 'bot', kind: 'action', label: 'Verified jobs', icon: Briefcase, target: 'jobs' },
+      ],
+    },
+    {
+      keys: ['loan', 'pravasi loan', 'pravasi-loan'],
+      reply: () => [
+        { from: 'bot', kind: 'text', text: 'Open Loans to compare lenders by EMI and relaxation period.' },
+        { from: 'bot', kind: 'action', label: 'Open Loans', icon: Wallet, target: 'loans' },
       ],
     },
     {

@@ -461,3 +461,195 @@ export const SUPPORTED_LANGUAGES = [
   { code: 'te', name: 'తెలుగు' },
   { code: 'mr', name: 'मराठी' },
 ]
+
+// ──────────────────────────────────────────────────────────────────────────
+// Financial & Mobility Services (loans / insurance / travel / affiliated
+// banks & cash agents). Every provider here is a prototype/mock partner —
+// see each `tag` field — none of these flows hit a real banking, insurer
+// or travel API.
+// ──────────────────────────────────────────────────────────────────────────
+
+export const LOAN_NEED_CATEGORIES = [
+  { id: 'travel',        label: 'Travel ticket',        icon: '✈️', defaultAmount: 18000 },
+  { id: 'housing',       label: 'Housing deposit',      icon: '🏠', defaultAmount: 25000 },
+  { id: 'visa',          label: 'Visa & documentation', icon: '🛂', defaultAmount: 16000 },
+  { id: 'skilling',      label: 'Skilling course',      icon: '🎓', defaultAmount: 0 },
+  { id: 'miscellaneous', label: 'Miscellaneous',        icon: '🧰', defaultAmount: 5000 },
+]
+
+export const LOAN_DOCUMENTS = [
+  { id: 'aadhaar',  label: 'Aadhaar', required: true,  available: true  },
+  { id: 'passport', label: 'Passport', required: true, available: true  },
+  { id: 'contract', label: 'Job contract / offer letter', required: true, available: true },
+  { id: 'visa',     label: 'Visa copy', required: false, available: false },
+  { id: 'tickets',  label: 'Travel tickets', required: false, available: false },
+  { id: 'pcc',      label: 'Police Clearance Certificate', required: false, available: false },
+]
+
+export const LOAN_PROVIDERS = [
+  {
+    id: 'sbi-pravasi',
+    name: 'SBI Pravasi Loan',
+    type: 'Bank',
+    tag: 'Mock regulated partner',
+    interestRateAnnual: 10.5,
+    processingFeePercent: 1.0,
+    minAmount: 25000,
+    maxAmount: 300000,
+    tenures: [12, 24, 36],
+    relaxationPeriodDays: 60,
+    requiredDocuments: ['aadhaar', 'passport', 'contract'],
+    processingTime: '2 to 3 working days',
+    badge: 'Best for travel',
+  },
+  {
+    id: 'union-foreign',
+    name: 'Union Bank Foreign Job Loan',
+    type: 'Bank',
+    tag: 'Mock regulated partner',
+    interestRateAnnual: 11.0,
+    processingFeePercent: 0.75,
+    minAmount: 50000,
+    maxAmount: 250000,
+    tenures: [12, 24],
+    relaxationPeriodDays: 90,
+    requiredDocuments: ['aadhaar', 'passport', 'contract'],
+    processingTime: '3 to 5 working days',
+    badge: 'Govt. interest subsidy',
+  },
+  {
+    id: 'pnb-overseas',
+    name: 'PNB Overseas Worker Loan',
+    type: 'Bank',
+    tag: 'Mock regulated partner',
+    interestRateAnnual: 10.9,
+    processingFeePercent: 1.25,
+    minAmount: 30000,
+    maxAmount: 280000,
+    tenures: [12, 24, 36],
+    relaxationPeriodDays: 45,
+    requiredDocuments: ['aadhaar', 'passport', 'contract'],
+    processingTime: '4 working days',
+  },
+  {
+    id: 'muthoot-migration',
+    name: 'Muthoot Migration Loan',
+    type: 'NBFC',
+    tag: 'Prototype partner',
+    interestRateAnnual: 14.0,
+    processingFeePercent: 1.5,
+    minAmount: 10000,
+    maxAmount: 150000,
+    tenures: [12, 18, 24],
+    relaxationPeriodDays: 30,
+    requiredDocuments: ['aadhaar', 'passport'],
+    processingTime: 'Same day',
+    badge: 'Fast approval',
+  },
+  {
+    id: 'fintech-bridge',
+    name: 'Bridge FinTech Migration',
+    type: 'FinTech',
+    tag: 'Integration-ready',
+    interestRateAnnual: 12.5,
+    processingFeePercent: 1.0,
+    minAmount: 20000,
+    maxAmount: 200000,
+    tenures: [12, 24],
+    relaxationPeriodDays: 60,
+    requiredDocuments: ['aadhaar', 'passport', 'contract'],
+    processingTime: '24 to 48 hours',
+    badge: 'Lowest EMI',
+  },
+]
+
+// ─── Insurance ────────────────────────────────────────────────────────────
+export const INSURANCE_CATEGORIES = [
+  { id: 'PBBY',          label: 'PBBY (Migrant Cover)', icon: '🇮🇳', mandatoryFor: 'ECR-category overseas workers',
+    description: 'Pravasi Bharatiya Bima Yojana — government-mandated cover for ECR workers.' },
+  { id: 'TRAVEL',        label: 'Travel Insurance',     icon: '🛫', description: 'Trip cancellation, baggage, medical evacuation overseas.' },
+  { id: 'HEALTH',        label: 'Health Insurance',     icon: '🏥', description: 'Cashless hospitalisation in India and abroad.' },
+  { id: 'LIFE',          label: 'Life Insurance',       icon: '👨‍👩‍👧', description: 'Long-term cover for your family while you work overseas.' },
+  { id: 'FAMILY_HEALTH', label: 'Family Health',        icon: '👪', description: 'Covers spouse, children and parents in India.' },
+  { id: 'CHILD_SAVINGS', label: 'Child Savings Plan',   icon: '🎒', description: 'Education-linked savings + life cover combo.' },
+]
+
+export const INSURANCE_PROVIDERS = [
+  { id: 'pbby-govt',  name: 'PBBY (Govt. of India)',     type: 'Government-linked', tag: 'Mandatory cover',     claimHelpline: '+91 11 4078 8870' },
+  { id: 'tata-aig',   name: 'Tata AIG',                  type: 'Insurer',           tag: 'Prototype partner',   claimHelpline: '+91 1800 266 7780' },
+  { id: 'icici-lomb', name: 'ICICI Lombard',             type: 'Insurer',           tag: 'Prototype partner',   claimHelpline: '+91 1800 2666' },
+  { id: 'star-hlth',  name: 'Star Health',               type: 'Insurer',           tag: 'Prototype partner',   claimHelpline: '+91 1800 425 2255' },
+  { id: 'hdfc-ergo',  name: 'HDFC Ergo',                 type: 'Insurer',           tag: 'Prototype partner',   claimHelpline: '+91 1800 2700 700' },
+  { id: 'reliance',   name: 'Reliance General',          type: 'Insurer',           tag: 'Integration-ready',   claimHelpline: '+91 1800 3009' },
+]
+
+export const INSURANCE_PLANS = [
+  { id: 'pbby-2yr',          providerId: 'pbby-govt',  category: 'PBBY',          name: 'PBBY 2-year cover',           premium: 275,    frequency: 'one-time',
+    coverageAmount: 1000000, benefits: ['Death/disability cover', 'Repatriation of mortal remains', 'Maternity (women workers)'], exclusions: ['Voluntary risk', 'War zones'], documents: ['Passport', 'Visa', 'Emigration clearance'], paymentMethods: ['UPI','NET_BANKING','BANK_BRANCH'], badge: 'Mandatory for ECR' },
+  { id: 'tata-migrant-h+t',  providerId: 'tata-aig',   category: 'TRAVEL',        name: 'Migrant Travel + Health',     premium: 4800,   frequency: 'yearly',
+    coverageAmount: 2000000, benefits: ['Hospitalisation', 'Trip cancellation', 'Document loss support', 'Repatriation'], exclusions: ['Pre-existing conditions', 'Adventure sports'], documents: ['Passport', 'Visa', 'Travel ticket'], paymentMethods: ['UPI','NET_BANKING'], badge: 'Recommended' },
+  { id: 'icici-lomb-travel', providerId: 'icici-lomb', category: 'TRAVEL',        name: 'Lombard Worker Travel',       premium: 5200,   frequency: 'yearly',
+    coverageAmount: 2500000, benefits: ['Hospital cashless', 'Personal accident', 'Family floater'], exclusions: ['Self-inflicted injury'], documents: ['Passport', 'Visa'], paymentMethods: ['UPI','NET_BANKING','BANK_BRANCH'] },
+  { id: 'star-family',       providerId: 'star-hlth',  category: 'FAMILY_HEALTH', name: 'Star Family Health Optima',   premium: 12000,  frequency: 'yearly',
+    coverageAmount: 500000,  benefits: ['Spouse', 'Children', 'Cashless 14k+ hospitals'], exclusions: ['Cosmetic surgery'], documents: ['Aadhaar', 'Family proof'], paymentMethods: ['UPI','NET_BANKING'], badge: 'Best for family' },
+  { id: 'hdfc-life-term',    providerId: 'hdfc-ergo',  category: 'LIFE',          name: 'HDFC Term Plan',              premium: 8500,   frequency: 'yearly',
+    coverageAmount: 5000000, benefits: ['Term cover', 'Accidental death rider'], exclusions: ['Suicide in 1st year'], documents: ['Aadhaar', 'PAN', 'Income proof'], paymentMethods: ['UPI','NET_BANKING','BANK_BRANCH'] },
+  { id: 'reliance-child',    providerId: 'reliance',   category: 'CHILD_SAVINGS', name: 'Smart Future Child',          premium: 24000,  frequency: 'yearly',
+    coverageAmount: 1500000, benefits: ['Education milestone payouts', 'Life cover for parent'], exclusions: ['Surrender before 5 yrs'], documents: ['Aadhaar', 'Birth certificate'], paymentMethods: ['UPI','NET_BANKING'] },
+  { id: 'tata-aig-health',   providerId: 'tata-aig',   category: 'HEALTH',        name: 'Tata AIG Migrant Health',     premium: 6800,   frequency: 'yearly',
+    coverageAmount: 1000000, benefits: ['Cashless network', 'Pre/post hospitalisation', 'Day-care procedures'], exclusions: ['First 30 days'], documents: ['Aadhaar'], paymentMethods: ['UPI','NET_BANKING','BANK_BRANCH'] },
+]
+
+// ─── Travel — airports + flight options ──────────────────────────────────
+export const AIRPORTS = [
+  { code: 'LKO', city: 'Lucknow',    country: 'India',        name: 'Chaudhary Charan Singh Intl' },
+  { code: 'DEL', city: 'New Delhi',  country: 'India',        name: 'Indira Gandhi Intl' },
+  { code: 'BOM', city: 'Mumbai',     country: 'India',        name: 'Chhatrapati Shivaji Intl' },
+  { code: 'COK', city: 'Kochi',      country: 'India',        name: 'Cochin Intl' },
+  { code: 'HYD', city: 'Hyderabad',  country: 'India',        name: 'Rajiv Gandhi Intl' },
+  { code: 'BLR', city: 'Bengaluru',  country: 'India',        name: 'Kempegowda Intl' },
+  { code: 'DXB', city: 'Dubai',      country: 'UAE',          name: 'Dubai Intl' },
+  { code: 'AUH', city: 'Abu Dhabi',  country: 'UAE',          name: 'Zayed Intl' },
+  { code: 'SHJ', city: 'Sharjah',    country: 'UAE',          name: 'Sharjah Intl' },
+  { code: 'DOH', city: 'Doha',       country: 'Qatar',        name: 'Hamad Intl' },
+  { code: 'RUH', city: 'Riyadh',     country: 'Saudi Arabia', name: 'King Khalid Intl' },
+  { code: 'JED', city: 'Jeddah',     country: 'Saudi Arabia', name: 'King Abdulaziz Intl' },
+  { code: 'KWI', city: 'Kuwait City',country: 'Kuwait',       name: 'Kuwait Intl' },
+  { code: 'MCT', city: 'Muscat',     country: 'Oman',         name: 'Muscat Intl' },
+]
+
+export const FLIGHT_PROVIDERS = [
+  { id: 'air-india', name: 'Air India',                       airline: 'Air India',  tag: 'Prototype partner' },
+  { id: 'indigo',    name: 'IndiGo',                          airline: 'IndiGo',     tag: 'Prototype partner' },
+  { id: 'flydubai',  name: 'flydubai',                        airline: 'flydubai',   tag: 'Prototype partner' },
+  { id: 'emirates',  name: 'Emirates',                        airline: 'Emirates',   tag: 'Prototype partner' },
+  { id: 'air-arabia',name: 'Air Arabia',                      airline: 'Air Arabia', tag: 'Prototype partner' },
+  { id: 'sky-search',name: 'Skyscanner-style aggregator',     airline: 'Multi-airline', tag: 'Integration-ready' },
+]
+
+export const TRAVEL_PAYMENT_METHODS = [
+  { id: 'upi',  label: 'UPI',           icon: '📲', note: 'Instant' },
+  { id: 'emi',  label: 'EMI',           icon: '🪙', note: '3 / 6 / 12 months' },
+  { id: 'bank', label: 'Bank transfer', icon: '🏦', note: '1 to 2 hours' },
+]
+
+// ─── Affiliated banks (for remittance bank-payout step) ───────────────────
+export const AFFILIATED_PAYOUT_BANKS = [
+  { id: 'sbi',   name: 'State Bank of India', supportsInstant: true,  ifscPrefix: 'SBIN', website: 'https://onlinesbi.sbi' },
+  { id: 'hdfc',  name: 'HDFC Bank',           supportsInstant: true,  ifscPrefix: 'HDFC', website: 'https://hdfcbank.com' },
+  { id: 'icici', name: 'ICICI Bank',          supportsInstant: true,  ifscPrefix: 'ICIC', website: 'https://icicibank.com' },
+  { id: 'axis',  name: 'Axis Bank',           supportsInstant: true,  ifscPrefix: 'UTIB', website: 'https://axisbank.com' },
+  { id: 'pnb',   name: 'Punjab National Bank',supportsInstant: false, ifscPrefix: 'PUNB', website: 'https://pnbindia.in' },
+  { id: 'bob',   name: 'Bank of Baroda',      supportsInstant: false, ifscPrefix: 'BARB', website: 'https://bankofbaroda.in' },
+  { id: 'fed',   name: 'Federal Bank',        supportsInstant: true,  ifscPrefix: 'FDRL', website: 'https://federalbank.co.in' },
+  { id: 'kotak', name: 'Kotak Mahindra Bank', supportsInstant: true,  ifscPrefix: 'KKBK', website: 'https://kotak.com' },
+]
+
+// ─── Cash pickup agents ──────────────────────────────────────────────────
+export const CASH_PICKUP_AGENTS = [
+  { id: 'wu-hzg',  name: 'Western Union — Hazratganj',  city: 'Lucknow', address: 'Shop 12, Hazratganj Plaza',      contact: '+91 522 4001 234', hours: 'Mon–Sat 9 AM – 8 PM',  documents: ['Govt. ID', 'Transfer code'] },
+  { id: 'mg-amn',  name: 'MoneyGram — Aminabad',        city: 'Lucknow', address: 'GF, Aminabad Bazaar',            contact: '+91 522 4002 567', hours: 'Mon–Sat 10 AM – 7 PM', documents: ['Govt. ID', 'Transfer code'] },
+  { id: 'ip-llb',  name: 'India Post — Lalbagh',        city: 'Lucknow', address: 'India Post Office, Lalbagh',     contact: '+91 522 2620 110', hours: 'Mon–Fri 9 AM – 5 PM',  documents: ['Govt. ID', 'Transfer code'] },
+  { id: 'wu-ksm',  name: 'Western Union — Kashmere Gate',city: 'Delhi',   address: 'Kashmere Gate, Old Delhi',       contact: '+91 11 2393 4567', hours: 'Mon–Sat 9 AM – 9 PM',  documents: ['Govt. ID', 'Transfer code'] },
+  { id: 'mg-bkc',  name: 'MoneyGram — BKC',             city: 'Mumbai',  address: 'Bandra Kurla Complex',           contact: '+91 22 6789 0123', hours: 'Mon–Sun 9 AM – 9 PM',  documents: ['Govt. ID', 'Transfer code'] },
+]

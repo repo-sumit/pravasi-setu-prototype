@@ -6,11 +6,16 @@ import BottomNav from '../components/BottomNav'
 import { VerifiedBadge } from '../components/VerifiedBadge'
 import {
   User, Phone, MapPin, BookOpen, ChevronRight, BookUser, Fingerprint,
-  FileText, LogOut, Settings, Globe, Languages, ShieldCheck
+  FileText, LogOut, Settings, Globe, Languages, ShieldCheck,
+  Wallet, Shield, Plane, Users, Send, Briefcase,
 } from 'lucide-react'
 
 export default function ProfilePage() {
-  const { profile, navigate, signOut } = useApp()
+  const {
+    profile, navigate, signOut,
+    loanApplications, insurancePolicies, travelBookings,
+    beneficiaries, transfers, applications,
+  } = useApp()
 
   return (
     <div className="flex-1 flex flex-col bg-surface-secondary overflow-hidden">
@@ -53,6 +58,40 @@ export default function ProfilePage() {
             <LinkRow icon={ShieldCheck} label="Skill Passport" sub="3 skills · 3 certificates" onClick={() => navigate('passport')} />
             <LinkRow icon={FileText}    label="Resume Builder" sub="Generate PDF · Share QR" onClick={() => navigate('passport')} />
             <LinkRow icon={Languages}   label="Languages"      sub="Hindi, English, Basic Arabic" />
+          </Section>
+
+          {/* My Services */}
+          <Section title="My Services">
+            <LinkRow
+              icon={Wallet}    label="My Loans"
+              sub={loanApplications.length ? `${loanApplications.length} application${loanApplications.length === 1 ? '' : 's'}` : 'No applications yet'}
+              onClick={() => navigate('loans', { mode: 'list' })}
+            />
+            <LinkRow
+              icon={Shield}    label="My Insurance"
+              sub={insurancePolicies.length ? `${insurancePolicies.length} polic${insurancePolicies.length === 1 ? 'y' : 'ies'}` : 'No policies yet'}
+              onClick={() => navigate('insurance', { mode: 'list' })}
+            />
+            <LinkRow
+              icon={Plane}     label="My Travel Tickets"
+              sub={travelBookings.length ? `${travelBookings.length} booking${travelBookings.length === 1 ? '' : 's'}` : 'No tickets yet'}
+              onClick={() => navigate('travel', { mode: 'list' })}
+            />
+            <LinkRow
+              icon={Send}      label="My Transfers"
+              sub={`${transfers.length} transfer${transfers.length === 1 ? '' : 's'}`}
+              onClick={() => navigate('transferTracker')}
+            />
+            <LinkRow
+              icon={Users}     label="My Beneficiaries"
+              sub={beneficiaries.length ? `${beneficiaries.length} saved` : 'Add a recipient from Send Money'}
+              onClick={() => navigate('remittance')}
+            />
+            <LinkRow
+              icon={Briefcase} label="My Applications"
+              sub={`${applications.length} job application${applications.length === 1 ? '' : 's'}`}
+              onClick={() => navigate('applicationTracker')}
+            />
           </Section>
 
           {/* Settings */}

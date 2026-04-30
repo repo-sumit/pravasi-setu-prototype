@@ -76,6 +76,13 @@ export function AppProvider({ children }) {
   const [certificates, setCertificates] = useState(() => loadSlice(STORAGE_KEYS.certificates, null) || CERTIFICATES)
   const [checklist,    setChecklist]    = useState(() => loadSlice(STORAGE_KEYS.checklist,    null) || PRE_DEPARTURE_CHECKLIST)
 
+  // ── Financial & Mobility Services slices (loans / insurance / travel) ───
+  const [loanApplications,   setLoanApplications]   = useState(() => loadSlice(STORAGE_KEYS.loanApplications,   null) || [])
+  const [insurancePolicies,  setInsurancePolicies]  = useState(() => loadSlice(STORAGE_KEYS.insurancePolicies,  null) || [])
+  const [travelBookings,     setTravelBookings]     = useState(() => loadSlice(STORAGE_KEYS.travelBookings,     null) || [])
+  const [manualApplications, setManualApplications] = useState(() => loadSlice(STORAGE_KEYS.manualApplications, null) || [])
+  const [beneficiaries,      setBeneficiaries]      = useState(() => loadSlice(STORAGE_KEYS.beneficiaries,      null) || [])
+
   const initialScreen = pickInitialScreen(persistedSession, persistedAppState)
   const [screen, setScreen] = useState(initialScreen)
   const [stack,  setStack]  = useState([initialScreen])
@@ -91,7 +98,12 @@ export function AppProvider({ children }) {
   useEffect(() => { saveSlice(STORAGE_KEYS.transfers,    transfers)    }, [transfers])
   useEffect(() => { saveSlice(STORAGE_KEYS.tickets,      tickets)      }, [tickets])
   useEffect(() => { saveSlice(STORAGE_KEYS.certificates, certificates) }, [certificates])
-  useEffect(() => { saveSlice(STORAGE_KEYS.checklist,    checklist)    }, [checklist])
+  useEffect(() => { saveSlice(STORAGE_KEYS.checklist,          checklist)          }, [checklist])
+  useEffect(() => { saveSlice(STORAGE_KEYS.loanApplications,   loanApplications)   }, [loanApplications])
+  useEffect(() => { saveSlice(STORAGE_KEYS.insurancePolicies,  insurancePolicies)  }, [insurancePolicies])
+  useEffect(() => { saveSlice(STORAGE_KEYS.travelBookings,     travelBookings)     }, [travelBookings])
+  useEffect(() => { saveSlice(STORAGE_KEYS.manualApplications, manualApplications) }, [manualApplications])
+  useEffect(() => { saveSlice(STORAGE_KEYS.beneficiaries,      beneficiaries)      }, [beneficiaries])
   useEffect(() => { saveAppState({ lastRoute: screen, lastParams: params }) }, [screen, params])
 
   // ── Navigation ──────────────────────────────────────────────────────────
@@ -154,15 +166,28 @@ export function AppProvider({ children }) {
     setTickets(GRIEVANCES)
     setCertificates(CERTIFICATES)
     setChecklist(PRE_DEPARTURE_CHECKLIST)
+    setLoanApplications([])
+    setInsurancePolicies([])
+    setTravelBookings([])
+    setManualApplications([])
+    setBeneficiaries([])
     setStack(['login'])
     setScreen('login')
     setParams({})
   }, [])
 
   // ── Slice mutators (used by pages) ──────────────────────────────────────
-  const addApplication = useCallback((app) => setApplications(a => [app, ...a]), [])
-  const addTransfer    = useCallback((t)   => setTransfers(arr => [t, ...arr]), [])
-  const addTicket      = useCallback((t)   => setTickets(arr => [t, ...arr]), [])
+  const addApplication       = useCallback((app) => setApplications(a => [app, ...a]), [])
+  const addTransfer          = useCallback((t)   => setTransfers(arr => [t, ...arr]), [])
+  const addTicket            = useCallback((t)   => setTickets(arr => [t, ...arr]), [])
+  const addLoanApplication   = useCallback((l)   => setLoanApplications(a => [l, ...a]), [])
+  const updateLoanApplication= useCallback((id, patch) => setLoanApplications(a => a.map(x => x.id === id ? { ...x, ...patch } : x)), [])
+  const addInsurancePolicy   = useCallback((p)   => setInsurancePolicies(a => [p, ...a]), [])
+  const updateInsurancePolicy= useCallback((id, patch) => setInsurancePolicies(a => a.map(x => x.id === id ? { ...x, ...patch } : x)), [])
+  const addTravelBooking     = useCallback((b)   => setTravelBookings(a => [b, ...a]), [])
+  const updateTravelBooking  = useCallback((id, patch) => setTravelBookings(a => a.map(x => x.id === id ? { ...x, ...patch } : x)), [])
+  const addManualApplication = useCallback((a)   => setManualApplications(arr => [a, ...arr]), [])
+  const addBeneficiary       = useCallback((b)   => setBeneficiaries(arr => [b, ...arr]), [])
 
   return (
     <AppContext.Provider value={{
@@ -184,6 +209,12 @@ export function AppProvider({ children }) {
       tickets,      addTicket,
       certificates, setCertificates,
       checklist,    setChecklist,
+      // financial & mobility services
+      loanApplications,   addLoanApplication,   updateLoanApplication,
+      insurancePolicies,  addInsurancePolicy,   updateInsurancePolicy,
+      travelBookings,     addTravelBooking,     updateTravelBooking,
+      manualApplications, addManualApplication,
+      beneficiaries,      addBeneficiary,
     }}>
       {children}
     </AppContext.Provider>

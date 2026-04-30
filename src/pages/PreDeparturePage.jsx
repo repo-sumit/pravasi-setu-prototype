@@ -52,15 +52,15 @@ export default function PreDeparturePage() {
               <p className="text-[12px] text-txt-secondary mt-0.5">Loans, insurance, visa, travel and readiness support.</p>
             </div>
             <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-4 lg:grid-cols-5 gap-2 sm:gap-3">
-              <ServiceTile icon="🏦" label="Loans"           onClick={() => showToast('Loan providers')} />
-              <ServiceTile icon="🛡️" label="Insurance (PBBY)" onClick={() => showToast('PBBY insurance')} />
-              <ServiceTile icon="💱" label="Forex"           onClick={() => showToast('Forex providers')} />
-              <ServiceTile icon="🛂" label="Visa help"       onClick={() => showToast('Visa assistance')} />
-              <ServiceTile icon="✈️" label="Tickets"         onClick={() => showToast('Travel booking')} />
-              <ServiceTile icon="💉" label="Vaccines"        onClick={() => showToast('Diagnostic centers')} />
-              <ServiceTile icon="🗣️" label="Language"        onClick={() => showToast('Language basics')} />
-              <ServiceTile icon="📜" label="Contract review" onClick={() => showToast('Translated contracts')} />
-              <ServiceTile icon="🚔" label="PCC"             onClick={() => showToast('Police clearance')} />
+              <ServiceTile icon="🏦" label="Loans"           onClick={() => navigate('loans')} />
+              <ServiceTile icon="🛡️" label="Insurance (PBBY)" onClick={() => navigate('insurance', { category: 'PBBY' })} />
+              <ServiceTile icon="💱" label="Forex"           onClick={() => navigate('remittance')} />
+              <ServiceTile icon="🛂" label="Visa help"       onClick={() => showToast('Visa assistance — coming soon')} />
+              <ServiceTile icon="✈️" label="Tickets"         onClick={() => navigate('travel')} />
+              <ServiceTile icon="💉" label="Vaccines"        onClick={() => showToast('GAMCA centres — coming soon')} />
+              <ServiceTile icon="🗣️" label="Language"        onClick={() => navigate('chat')} />
+              <ServiceTile icon="📜" label="Contract review" onClick={() => showToast('Contract translation — coming soon')} />
+              <ServiceTile icon="🚔" label="PCC"             onClick={() => navigate('certificate', { certId: 'cert-weld' })} />
             </div>
           </section>
 

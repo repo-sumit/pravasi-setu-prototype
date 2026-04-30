@@ -5,21 +5,24 @@ import BottomNav from '../components/BottomNav'
 import {
   Briefcase, Calculator, ListChecks, Plane, Send, AlertTriangle,
   Stethoscope, Wallet, Home as HomeIcon, RotateCcw, Mic, Bell, ChevronRight, ShieldCheck,
-  UserPlus, ClipboardList, Siren, Award
+  UserPlus, ClipboardList, Siren, Award, Shield
 } from 'lucide-react'
 import Logo from '../components/Logo'
 
 const QUICK_TILES = [
   { id: 'jobs',               icon: Briefcase,     title: 'Find Jobs',         color: 'bg-info-light text-info' },
-  { id: 'calculator',         icon: Calculator,    title: 'Cost Calculator',   color: 'bg-accent-light text-accent' },
+  { id: 'remittance',         icon: Send,          title: 'Send Money',        color: 'bg-primary-light text-primary' },
+  { id: 'loans',              icon: Wallet,        title: 'Loans',             color: 'bg-primary-light text-primary' },
+  { id: 'insurance',          icon: Shield,        title: 'Insurance',         color: 'bg-primary-light text-primary' },
+  { id: 'travel',             icon: Plane,         title: 'Travel',            color: 'bg-info-light text-info' },
+  { id: 'calculator',         icon: Calculator,    title: 'Cost Calculator',   color: 'bg-primary-light text-primary' },
   { id: 'predeparture',       icon: ListChecks,    title: 'Pre-Departure',     color: 'bg-primary-light text-primary' },
-  { id: 'postarrival',        icon: Plane,         title: 'Post-Arrival',      color: 'bg-ok-light text-ok' },
-  { id: 'remittance',         icon: Send,          title: 'Send Money',        color: 'bg-warn-light text-warn' },
+  { id: 'postarrival',        icon: HomeIcon,      title: 'Post-Arrival',      color: 'bg-ok-light text-ok' },
   { id: 'applicationTracker', icon: ClipboardList, title: 'Applications',      color: 'bg-info-light text-info' },
   { id: 'employment',         icon: Wallet,        title: 'My Employment',     color: 'bg-info-light text-info' },
-  { id: 'grievance',          icon: AlertTriangle, title: 'Grievance',         color: 'bg-danger-light text-danger' },
+  { id: 'passport',           icon: Award,         title: 'Skill Passport',    color: 'bg-primary-light text-primary' },
   { id: 'profileSetup',       icon: UserPlus,      title: 'Profile Setup',     color: 'bg-primary-light text-primary' },
-  { id: 'passport',           icon: Award,         title: 'Skill Passport',    color: 'bg-accent-light text-accent' },
+  { id: 'grievance',          icon: AlertTriangle, title: 'Grievance',         color: 'bg-danger-light text-danger' },
   { id: 'return',             icon: RotateCcw,     title: 'Return to India',   color: 'bg-primary-light text-primary' },
   { id: 'emergency',          icon: Siren,         title: 'Emergency',         color: 'bg-danger-light text-danger' },
 ]
