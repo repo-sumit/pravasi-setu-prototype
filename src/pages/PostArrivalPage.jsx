@@ -31,7 +31,7 @@ export default function PostArrivalPage() {
 
       <div className="flex-1 overflow-y-auto pb-6">
         {/* Welcome card */}
-        <div className="bg-gradient-to-br from-primary to-ok text-white p-5">
+        <div className="bg-gradient-to-br from-primary to-primary-dark text-white p-5">
           <div className="text-[12px] opacity-90">Welcome to Dubai 👋</div>
           <div className="text-[18px] font-extrabold mt-0.5">First 30 days</div>
           <p className="text-[12px] opacity-90 mt-1">Track your settling-in tasks, find essentials and connect with help nearby.</p>

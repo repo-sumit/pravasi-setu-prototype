@@ -14,9 +14,6 @@ export default function PartnerStrip({ compact = false, className = '' }) {
   }
   return (
     <div className={`bg-white rounded-card border border-bdr-light p-3 ${className}`}>
-      <div className="text-[10px] font-bold uppercase tracking-wide text-txt-tertiary text-center mb-2">
-        A trusted public–private prototype
-      </div>
       <div className="flex items-center justify-center gap-5">
         <div className="flex flex-col items-center">
           <img src="/convegenius.png" alt="ConveGenius" className="h-9 w-auto" />

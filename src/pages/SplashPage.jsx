@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { useApp } from '../context/AppContext'
-import Logo from '../components/Logo'
+import LogoLockup from '../components/LogoLockup'
 import PartnerStrip from '../components/PartnerStrip'
 import { Check, Globe } from 'lucide-react'
 
@@ -24,11 +24,9 @@ export default function SplashPage() {
 
   return (
     <div className="flex-1 flex flex-col items-center bg-white overflow-y-auto">
-      <div className="w-full max-w-[480px] flex flex-col items-center justify-between min-h-full px-6 py-10 gap-8">
-        <div className="flex flex-col items-center text-center w-full pt-6">
-          <Logo size={72} />
-          <h1 className="text-[24px] font-extrabold text-txt-primary mt-5">Pravasi Setu</h1>
-          <p className="text-[12px] text-txt-secondary mt-1">Your trusted bridge for migration</p>
+      <div className="w-full max-w-[560px] flex flex-col items-center justify-between min-h-full px-4 sm:px-6 py-8 gap-8">
+        <div className="w-full pt-2">
+          <LogoLockup variant="centered" size={80} showTagline />
         </div>
 
         <div className="w-full">

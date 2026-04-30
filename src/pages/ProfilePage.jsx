@@ -20,7 +20,7 @@ export default function ProfilePage() {
         <div className="max-w-screen-md mx-auto w-full">
         {/* Header card */}
         <div className="bg-white p-5 flex items-center gap-4">
-          <div className="w-16 h-16 rounded-full bg-gradient-to-br from-primary to-ok flex items-center justify-center text-white text-[22px] font-bold flex-shrink-0">
+          <div className="w-16 h-16 rounded-full bg-gradient-to-br from-primary to-primary-dark flex items-center justify-center text-white text-[22px] font-bold flex-shrink-0">
             {profile.name.split(' ').map(n => n[0]).join('')}
           </div>
           <div className="flex-1">
@@ -65,7 +65,9 @@ export default function ProfilePage() {
           <LinkRow icon={LogOut} label="Sign Out" danger onClick={() => navigate('splash')} />
         </div>
 
-        <p className="text-center text-[10px] text-txt-tertiary mt-4 mb-2">Pravasi Setu v0.1 · Govt. of India</p>
+        <p className="text-center text-[10px] text-txt-tertiary mt-4 mb-2">
+          Pravasi Setu v0.1 · Powered by ConveGenius · In partnership with NSDC International
+        </p>
         </div>
       </div>
       <BottomNav />

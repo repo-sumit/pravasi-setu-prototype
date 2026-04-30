@@ -34,7 +34,9 @@ export default function HomePage() {
         <div className="max-w-screen-md mx-auto w-full">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <Logo size={36} />
+            <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center shadow-card">
+              <Logo size={28} />
+            </div>
             <div>
               <div className="text-[11px] text-white/70">Namaste 🙏</div>
               <div className="text-[15px] font-bold">{profile.name.split(' ')[0]}</div>

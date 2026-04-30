@@ -3,12 +3,20 @@
    surfaces (raw CSS, third-party widgets) can opt into the same palette. */
 
 :root {
+  /* Brand */
+  --color-brand-primary:          #386AF6;
+  --color-brand-primary-hover:    #2454D6;
+  --color-brand-primary-disabled: #C3D2FC;
+
   /* Background */
   --color-background-default:        #FFFFFF;
+  --color-background-app:            #F5F7FA;
   --color-background-surface:        #ECECEC;
   --color-background-surface-raised: #FFFFFF;
   --color-background-brand:          #386AF6;
   --color-background-brand-subtle:   #C3D2FC;
+  --color-surface:                   #FFFFFF;
+  --color-surface-subtle:            #F6F8FC;
 
   /* Text */
   --color-text-primary:    #0E0E0E;

@@ -69,15 +69,16 @@ export default function ProfileSetupPage() {
       <StatusBar />
       <TopBar title="Create your profile" sub={`Step ${step + 1} of ${STEPS.length} · ${STEPS[step]}`} />
 
-      <div className="px-4 pt-3">
-        <div className="flex gap-1">
+      <div className="px-4 pt-3 flex justify-center">
+        <div className="w-full max-w-[560px] flex gap-1">
           {STEPS.map((s, i) => (
             <div key={s} className={`flex-1 h-1.5 rounded-full ${i <= step ? 'bg-primary' : 'bg-bdr'}`} />
           ))}
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto px-4 py-4 pb-28">
+      <div className="flex-1 overflow-y-auto flex justify-center px-4 py-4 pb-28">
+        <div className="w-full max-w-[560px]">
         {step === 0 && (
           <Section title="Tell us about yourself" sub="This builds your verified migrant profile">
             <Field label="Full name" icon={User}>
@@ -208,9 +209,10 @@ export default function ProfileSetupPage() {
             </div>
           </Section>
         )}
+        </div>
       </div>
 
-      <div className="px-4 py-3 border-t border-bdr-light bg-white flex gap-2 flex-shrink-0">
+      <div className="px-4 py-3 border-t border-bdr-light bg-white flex gap-2 flex-shrink-0 max-w-[560px] mx-auto w-full">
         {step > 0 && (
           <button onClick={() => setStep(s => s - 1)} className="px-5 rounded-pill bg-surface-secondary text-txt-secondary font-bold text-[13px]">Back</button>
         )}

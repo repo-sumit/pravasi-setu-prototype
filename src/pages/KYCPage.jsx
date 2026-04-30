@@ -29,7 +29,8 @@ export default function KYCPage() {
   return (
     <div className="flex-1 flex flex-col bg-white min-h-0 relative">
       <TopBar title="Verify your identity" sub="Step 2 of 3" />
-      <div className="flex-1 overflow-y-auto px-5 py-5">
+      <div className="flex-1 overflow-y-auto flex justify-center px-4 sm:px-5 py-5">
+        <div className="w-full max-w-[560px]">
         <p className="text-[13px] text-txt-secondary leading-relaxed">
           Connect any one of these to build a verified profile that employers trust. You can add the others later.
         </p>
@@ -68,9 +69,11 @@ export default function KYCPage() {
         </div>
 
         <PartnerStrip className="mt-6" />
+        </div>
       </div>
 
-      <div className="px-5 py-4 border-t border-bdr-light flex-shrink-0">
+      <div className="px-5 py-4 border-t border-bdr-light flex-shrink-0 flex justify-center">
+        <div className="w-full max-w-[560px]">
         <button
           onClick={() => navigate('home')}
           disabled={!anyDone}
@@ -83,6 +86,7 @@ export default function KYCPage() {
             Skip for now
           </button>
         )}
+        </div>
       </div>
 
       {/* Sub-flow modal */}
