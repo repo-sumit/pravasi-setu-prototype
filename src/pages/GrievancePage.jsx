@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import { useApp } from '../context/AppContext'
 import StatusBar from '../components/StatusBar'
 import TopBar from '../components/TopBar'
-import { GRIEVANCES } from '../data/mockData'
+// `tickets` come from AppContext (so newly raised ones appear too)
 import {
   AlertTriangle, Phone, Wallet, Building, Shield, Mic, Send, CheckCircle2, Clock, ChevronRight, Plus
 } from 'lucide-react'
@@ -15,16 +15,35 @@ const CATEGORIES = [
 ]
 
 export default function GrievancePage() {
-  const { showToast, navigate } = useApp()
+  const { showToast, navigate, tickets, addTicket } = useApp()
   const [creating, setCreating] = useState(false)
   const [cat, setCat] = useState(null)
   const [desc, setDesc] = useState('')
 
   const submit = () => {
-    showToast('Grievance #PS-2056 raised · Embassy notified')
-    setCreating(false)
-    setCat(null)
-    setDesc('')
+    const id = `PS-${2100 + tickets.length}`
+    const today = new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })
+    const catLabel = CATEGORIES.find(c => c.id === cat)?.label || 'General'
+    addTicket({
+      id,
+      title: desc.slice(0, 80) || catLabel,
+      description: desc,
+      category: catLabel,
+      status: 'In Progress',
+      date: today,
+      priority: 'Medium',
+      routedTo: ['MEA / MADAD', 'Indian Embassy', 'Pravasi Setu Legal'],
+      assignedOfficer: 'Auto-assigned · Pravasi Setu Triage',
+      timeline: [
+        { step: 'Filed',         date: today,   done: true,  note: 'Ticket raised via app' },
+        { step: 'Under review',  date: 'Pending', done: false, current: true, note: 'Routing to embassy + legal team' },
+        { step: 'Action taken',  date: 'Pending', done: false },
+        { step: 'Resolved',      date: 'Pending', done: false },
+      ],
+    })
+    showToast(`Grievance ${id} raised · Embassy notified`)
+    setCreating(false); setCat(null); setDesc('')
+    navigate('ticketDetail', { ticketId: id })
   }
 
   if (creating) {
@@ -85,7 +104,7 @@ export default function GrievancePage() {
 
         <div className="px-4 py-3 border-t border-bdr-light bg-white flex gap-2 flex-shrink-0">
           <button
-            onClick={() => showToast('Emergency support contacted', 'error')}
+            onClick={() => navigate('emergency')}
             className="flex-1 bg-danger text-white font-bold text-[13px] py-3 rounded-pill flex items-center justify-center gap-1"
           >
             <Phone size={14} /> Emergency
@@ -113,7 +132,7 @@ export default function GrievancePage() {
         </p>
         <div className="flex gap-2">
           <button
-            onClick={() => showToast('Emergency: calling Indian Embassy', 'error')}
+            onClick={() => navigate('emergency')}
             className="flex-1 bg-danger rounded-pill py-3 font-bold text-[13px] flex items-center justify-center gap-2"
           >
             <Phone size={14} /> Emergency Help
@@ -128,10 +147,15 @@ export default function GrievancePage() {
       </div>
 
       <div className="flex-1 overflow-y-auto px-4 py-4">
+        <div className="max-w-screen-md mx-auto w-full">
         <div className="text-[12px] font-bold text-txt-secondary uppercase mb-2">My tickets</div>
         <div className="space-y-2">
-          {GRIEVANCES.map(g => (
-            <div key={g.id} className="bg-white rounded-card shadow-card p-4">
+          {tickets.map(g => (
+            <button
+              key={g.id}
+              onClick={() => navigate('ticketDetail', { ticketId: g.id })}
+              className="w-full bg-white rounded-card shadow-card p-4 text-left active:scale-[0.99]"
+            >
               <div className="flex items-start justify-between gap-2">
                 <div className="flex-1">
                   <div className="text-[10px] font-bold text-txt-tertiary uppercase">{g.id}</div>
@@ -145,20 +169,15 @@ export default function GrievancePage() {
                   {g.status}
                 </span>
               </div>
-              {/* status bar */}
               <div className="mt-3 grid grid-cols-4 gap-1">
-                {['Filed', 'Under review', 'Action taken', 'Resolved'].map((step, i) => {
-                  const total = g.status === 'Resolved' ? 4 : 2
-                  const active = i < total
-                  return (
-                    <div key={step}>
-                      <div className={`h-1 rounded-full ${active ? 'bg-primary' : 'bg-bdr'}`} />
-                      <div className={`text-[9px] mt-1 ${active ? 'text-primary font-bold' : 'text-txt-tertiary'}`}>{step}</div>
-                    </div>
-                  )
-                })}
+                {(g.timeline || []).map((t, i) => (
+                  <div key={i}>
+                    <div className={`h-1 rounded-full ${t.done ? 'bg-primary' : t.current ? 'bg-warn' : 'bg-bdr'}`} />
+                    <div className={`text-[9px] mt-1 truncate ${t.done || t.current ? 'text-primary font-bold' : 'text-txt-tertiary'}`}>{t.step}</div>
+                  </div>
+                ))}
               </div>
-            </div>
+            </button>
           ))}
         </div>
 
@@ -167,6 +186,7 @@ export default function GrievancePage() {
           <Helpline label="MADAD (MEA Helpline)" num="+91 11 4078 8870" />
           <Helpline label="Indian Embassy Dubai" num="+971 4 397 1222" />
           <Helpline label="Pravasi Bharatiya Sahayata Kendra" num="+91 11 2310 0011" />
+        </div>
         </div>
       </div>
     </div>

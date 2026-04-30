@@ -3,10 +3,10 @@ import { useApp } from '../context/AppContext'
 import StatusBar from '../components/StatusBar'
 import TopBar from '../components/TopBar'
 import { VerifiedBadge } from '../components/VerifiedBadge'
-import { QrCode, Share2, Download, Plus, Award, Briefcase, Star } from 'lucide-react'
+import { QrCode, Share2, Download, Plus, Award, Briefcase, Star, ChevronRight } from 'lucide-react'
 
 export default function SkillPassportPage() {
-  const { profile, showToast } = useApp()
+  const { profile, showToast, navigate } = useApp()
 
   return (
     <div className="flex-1 flex flex-col bg-surface-secondary overflow-hidden">
@@ -65,16 +65,21 @@ export default function SkillPassportPage() {
         <Section title="Certifications">
           <div className="space-y-2">
             {profile.certifications.map(c => (
-              <div key={c.name} className="flex items-center gap-3 p-3 bg-white rounded-card shadow-card">
+              <button
+                key={c.id || c.name}
+                onClick={() => navigate('certificate', { certId: c.id })}
+                className="w-full flex items-center gap-3 p-3 bg-white rounded-card shadow-card text-left active:scale-[0.99]"
+              >
                 <div className="w-9 h-9 rounded-lg bg-accent-light flex items-center justify-center">
                   <Award size={16} className="text-accent" />
                 </div>
-                <div className="flex-1">
-                  <div className="text-[13px] font-bold text-txt-primary">{c.name}</div>
-                  <div className="text-[11px] text-txt-secondary">{c.issuer} · {c.year}</div>
+                <div className="flex-1 min-w-0">
+                  <div className="text-[13px] font-bold text-txt-primary truncate">{c.name}</div>
+                  <div className="text-[11px] text-txt-secondary truncate">{c.issuer} · {c.year}</div>
                 </div>
                 <VerifiedBadge verified={c.verified} />
-              </div>
+                <ChevronRight size={14} className="text-txt-tertiary" />
+              </button>
             ))}
           </div>
         </Section>

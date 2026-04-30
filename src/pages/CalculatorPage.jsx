@@ -26,7 +26,8 @@ export default function CalculatorPage() {
       <TopBar title="Migration Cost Calculator" sub="Plan your finances honestly" />
 
       <div className="flex-1 overflow-y-auto pb-24">
-        <div className="bg-white p-5">
+        <div className="max-w-screen-xl mx-auto w-full lg:grid lg:grid-cols-2 lg:gap-4 lg:p-4">
+        <div className="bg-white p-5 lg:rounded-card lg:shadow-card">
           <div className="flex items-center gap-2 mb-3">
             <div className="w-9 h-9 rounded-xl bg-accent-light flex items-center justify-center">
               <Calculator size={18} className="text-accent" />
@@ -77,7 +78,8 @@ export default function CalculatorPage() {
           </Field>
         </div>
 
-        <div className="bg-gradient-to-br from-primary to-primary-dark text-white mx-4 mt-4 rounded-card p-5 shadow-modal">
+        <div className="lg:flex lg:flex-col lg:gap-3 lg:mt-0">
+        <div className="bg-gradient-to-br from-primary to-primary-dark text-white mx-4 lg:mx-0 mt-4 lg:mt-0 rounded-card p-5 shadow-modal">
           <div className="text-[11px] opacity-80 uppercase font-semibold">Total migration cost</div>
           <div className="text-[34px] font-extrabold leading-tight">₹{total.toLocaleString()}</div>
 
@@ -99,7 +101,7 @@ export default function CalculatorPage() {
         </div>
 
         {/* Breakdown */}
-        <div className="bg-white mx-4 mt-3 rounded-card p-4 shadow-card">
+        <div className="bg-white mx-4 lg:mx-0 mt-3 lg:mt-0 rounded-card p-4 shadow-card">
           <div className="text-[12px] font-bold text-txt-primary mb-3">Breakdown</div>
           {[
             { label: 'Agent fees',       v: agentFee, color: 'bg-accent' },
@@ -121,7 +123,7 @@ export default function CalculatorPage() {
 
         <button
           onClick={() => navigate('predeparture')}
-          className="mx-4 mt-3 w-[calc(100%-32px)] bg-primary-light border border-primary rounded-card p-3 flex items-center gap-3"
+          className="mx-4 lg:mx-0 mt-3 w-[calc(100%-32px)] lg:w-full bg-primary-light border border-primary rounded-card p-3 flex items-center gap-3"
         >
           <span className="text-[20px]">📋</span>
           <div className="flex-1 text-left">
@@ -130,6 +132,8 @@ export default function CalculatorPage() {
           </div>
           <ChevronRight size={16} className="text-primary" />
         </button>
+        </div>
+        </div>
       </div>
     </div>
   )

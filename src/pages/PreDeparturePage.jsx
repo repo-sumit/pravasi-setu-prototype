@@ -43,6 +43,7 @@ export default function PreDeparturePage() {
       </div>
 
       <div className="flex-1 overflow-y-auto px-4 py-3 -mt-3 pb-6">
+        <div className="max-w-screen-md mx-auto w-full">
         {/* Service tiles */}
         <div className="grid grid-cols-3 gap-2 mb-4">
           <ServiceTile icon="🏦" label="Loans"        onClick={() => showToast('Loan providers')} />
@@ -122,6 +123,7 @@ export default function PreDeparturePage() {
             <div className="text-[11px] text-txt-secondary">10-minute daily lessons · Voice + text</div>
           </div>
           <button onClick={() => navigate('chat')} className="text-[11px] font-bold text-primary">Start →</button>
+        </div>
         </div>
       </div>
     </div>

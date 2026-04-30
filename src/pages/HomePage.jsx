@@ -4,19 +4,24 @@ import StatusBar from '../components/StatusBar'
 import BottomNav from '../components/BottomNav'
 import {
   Briefcase, Calculator, ListChecks, Plane, Send, AlertTriangle,
-  Stethoscope, Wallet, Home as HomeIcon, RotateCcw, Mic, Bell, ChevronRight, ShieldCheck
+  Stethoscope, Wallet, Home as HomeIcon, RotateCcw, Mic, Bell, ChevronRight, ShieldCheck,
+  UserPlus, ClipboardList, Siren, Award
 } from 'lucide-react'
 import Logo from '../components/Logo'
 
 const QUICK_TILES = [
-  { id: 'jobs',         icon: Briefcase,    title: 'Find Jobs',         color: 'bg-info-light text-info' },
-  { id: 'calculator',   icon: Calculator,   title: 'Cost Calculator',   color: 'bg-accent-light text-accent' },
-  { id: 'predeparture', icon: ListChecks,   title: 'Pre-Departure',     color: 'bg-primary-light text-primary' },
-  { id: 'postarrival',  icon: Plane,        title: 'Post-Arrival',      color: 'bg-ok-light text-ok' },
-  { id: 'remittance',   icon: Send,         title: 'Send Money',        color: 'bg-warn-light text-warn' },
-  { id: 'grievance',    icon: AlertTriangle,title: 'Grievance',         color: 'bg-danger-light text-danger' },
-  { id: 'employment',   icon: Wallet,       title: 'My Employment',     color: 'bg-info-light text-info' },
-  { id: 'return',       icon: RotateCcw,    title: 'Return to India',   color: 'bg-primary-light text-primary' },
+  { id: 'jobs',               icon: Briefcase,     title: 'Find Jobs',         color: 'bg-info-light text-info' },
+  { id: 'calculator',         icon: Calculator,    title: 'Cost Calculator',   color: 'bg-accent-light text-accent' },
+  { id: 'predeparture',       icon: ListChecks,    title: 'Pre-Departure',     color: 'bg-primary-light text-primary' },
+  { id: 'postarrival',        icon: Plane,         title: 'Post-Arrival',      color: 'bg-ok-light text-ok' },
+  { id: 'remittance',         icon: Send,          title: 'Send Money',        color: 'bg-warn-light text-warn' },
+  { id: 'applicationTracker', icon: ClipboardList, title: 'Applications',      color: 'bg-info-light text-info' },
+  { id: 'employment',         icon: Wallet,        title: 'My Employment',     color: 'bg-info-light text-info' },
+  { id: 'grievance',          icon: AlertTriangle, title: 'Grievance',         color: 'bg-danger-light text-danger' },
+  { id: 'profileSetup',       icon: UserPlus,      title: 'Profile Setup',     color: 'bg-primary-light text-primary' },
+  { id: 'passport',           icon: Award,         title: 'Skill Passport',    color: 'bg-accent-light text-accent' },
+  { id: 'return',             icon: RotateCcw,     title: 'Return to India',   color: 'bg-primary-light text-primary' },
+  { id: 'emergency',          icon: Siren,         title: 'Emergency',         color: 'bg-danger-light text-danger' },
 ]
 
 export default function HomePage() {
@@ -26,6 +31,7 @@ export default function HomePage() {
     <div className="flex-1 flex flex-col bg-surface-secondary overflow-hidden">
       <StatusBar dark />
       <div className="bg-primary text-white px-5 pt-4 pb-8 rounded-b-3xl">
+        <div className="max-w-screen-md mx-auto w-full">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Logo size={36} />
@@ -52,9 +58,11 @@ export default function HomePage() {
             </div>
           </div>
         </div>
+        </div>
       </div>
 
       <div className="flex-1 overflow-y-auto px-4 -mt-4 pb-20">
+        <div className="max-w-screen-md mx-auto w-full">
         <button
           onClick={() => navigate('chat')}
           className="w-full bg-white rounded-card shadow-card p-4 flex items-center gap-3 mb-4 active:scale-[0.99]"
@@ -72,7 +80,7 @@ export default function HomePage() {
         <div className="text-[12px] font-bold text-txt-secondary uppercase tracking-wide mb-2 px-1">
           Quick Services
         </div>
-        <div className="grid grid-cols-4 gap-3">
+        <div className="grid grid-cols-4 sm:grid-cols-6 gap-3">
           {QUICK_TILES.map(t => {
             const Icon = t.icon
             return (
@@ -128,6 +136,7 @@ export default function HomePage() {
               </div>
             </div>
           </div>
+        </div>
         </div>
       </div>
 

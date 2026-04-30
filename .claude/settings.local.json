@@ -1,0 +1,20 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(node -e \"console.log\\(process.versions.node\\)\")",
+      "Bash(python -c \"import openpyxl; print\\(openpyxl.__version__\\)\")",
+      "Bash(python -c ' *)",
+      "Bash(npm run *)",
+      "Bash(curl -sS http://localhost:5173/)",
+      "Bash(curl -sS http://localhost:5174/ -o /dev/null -w \"%{http_code}\\\\n\")",
+      "Bash(curl -sS http://localhost:5174/favicon.png -o /tmp/fav.png -w \"favicon: %{http_code} %{size_download}b\\\\n\")",
+      "Bash(curl -sS http://localhost:5174/src/main.jsx -o /tmp/m.js -w \"main.jsx: %{http_code} %{size_download}b\\\\n\")",
+      "Bash(curl -sS http://localhost:5174/src/data/migrantJobsData.js -o /tmp/d.js -w \"migrant data: %{http_code} %{size_download}b\\\\n\")",
+      "Bash(curl -sS http://localhost:5174/src/App.jsx -o /tmp/a.js -w \"App.jsx: %{http_code} %{size_download}b\\\\n\")",
+      "Bash(jobs -l)",
+      "Bash(pkill -f \"vite\")",
+      "Bash(curl -sS http://localhost:5174/src/pages/GrievancePage.jsx -o /dev/null -w \"Grievance: %{http_code}\\\\n\")",
+      "Bash(curl -sS http://localhost:5174/src/pages/CalculatorPage.jsx -o /dev/null -w \"Calculator: %{http_code}\\\\n\")"
+    ]
+  }
+}

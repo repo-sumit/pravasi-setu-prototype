@@ -18,7 +18,7 @@ const HISTORY = [
 ]
 
 export default function RemittancePage() {
-  const { showToast } = useApp()
+  const { showToast, navigate, addTransfer, transfers } = useApp()
   const [aed, setAed] = useState(500)
   const [provider, setProvider] = useState('rmly')
 
@@ -35,6 +35,7 @@ export default function RemittancePage() {
       <TopBar title="Send Money Home" sub="Compare rates · Track transfers" dark />
 
       <div className="flex-1 overflow-y-auto pb-24">
+        <div className="max-w-screen-xl mx-auto w-full">
         {/* Converter card */}
         <div className="bg-primary px-5 pb-5">
           <div className="bg-white rounded-card shadow-modal p-4">
@@ -151,11 +152,37 @@ export default function RemittancePage() {
             ))}
           </div>
         </div>
+        </div>
       </div>
 
       <div className="px-4 py-3 border-t border-bdr-light bg-white flex-shrink-0">
         <button
-          onClick={() => showToast('Transfer initiated · Tracking ID #TR-9821')}
+          onClick={() => {
+            const id = `TR-${9900 + transfers.length}`
+            const now = new Date()
+            const fmt = now.toLocaleString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true })
+            addTransfer({
+              id,
+              from: 'You (UAE)',
+              to: 'Sunita (Wife) · SBI ****8821',
+              amount: Math.round(inr),
+              currency: 'INR',
+              provider: selectedP?.name || 'Wise',
+              fee: selectedP?.fee || 0,
+              rate: selectedP?.rate || 22.92,
+              initiatedOn: fmt,
+              eta: 'ETA in 30–60 min',
+              status: 'In transit',
+              timeline: [
+                { step: 'Initiated',               date: fmt,    done: true },
+                { step: 'Funds debited',           date: fmt,    done: true, current: true },
+                { step: 'In transit',              date: 'Pending', done: false },
+                { step: 'Credited to beneficiary', date: 'Pending', done: false },
+              ],
+            })
+            showToast(`Transfer ${id} initiated`)
+            navigate('transferTracker', { transferId: id })
+          }}
           className="w-full bg-primary text-white font-bold text-[14px] py-3 rounded-pill flex items-center justify-center gap-2 shadow-card"
         >
           <Send size={16} /> Send ₹{Math.round(inr).toLocaleString()} now

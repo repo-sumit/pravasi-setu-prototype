@@ -21,7 +21,7 @@ export default function UpdatesPage() {
       <TopBar title="Updates & Alerts" />
 
       <div className="flex-1 overflow-y-auto px-4 py-4 pb-20">
-        <div className="space-y-2">
+        <div className="max-w-screen-md mx-auto w-full space-y-2">
           {NOTIFICATIONS.map(n => {
             const meta = ICONS[n.kind] || ICONS.support
             const Icon = meta.icon
@@ -43,7 +43,7 @@ export default function UpdatesPage() {
           })}
         </div>
 
-        <div className="mt-5 bg-primary-light rounded-card p-4">
+        <div className="max-w-screen-md mx-auto mt-5 bg-primary-light rounded-card p-4">
           <div className="text-[12px] font-bold text-primary mb-1">🔔 Notification preferences</div>
           <p className="text-[11px] text-txt-secondary">Get alerts in Hindi or English. Voice playback for low-literacy users.</p>
         </div>
