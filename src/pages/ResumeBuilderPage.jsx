@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react'
+import React, { useState, useMemo, useEffect, useRef, useLayoutEffect } from 'react'
 import { useApp } from '../context/AppContext'
 import StatusBar from '../components/StatusBar'
 import TopBar from '../components/TopBar'
@@ -37,6 +37,7 @@ export default function ResumeBuilderPage() {
   }, [resume.lastUpdated])
 
   const completeness = useMemo(() => completenessScore(resume), [resume])
+  const pageCount    = useMemo(() => paginateResume(resume).length, [resume])
 
   const setField = (path, value) => {
     setResume(r => setIn(r, path, value))
@@ -51,16 +52,40 @@ export default function ResumeBuilderPage() {
     setResume(r => ({ ...r, [section]: [...r[section], { ...item, id: `${section.slice(0, 3)}-${Date.now()}` }] }))
   }
 
+  // Browser print-to-PDF. Two rAF ticks ensure the print root has fully
+  // rendered the canonical A4 pages before window.print() runs — this
+  // prevents page-count drift between preview and print.
   const onPrint = () => {
-    showToast('Opening print dialog — choose "Save as PDF"')
+    const expected = paginateResume(resume).length
+    showToast(`Preparing ${expected}-page PDF — turn off browser headers in the print dialog`)
     const previousTitle = document.title
     document.title = `Pravasi_Setu_Resume_${(resume.personal.name || 'worker').replace(/\s+/g, '_')}`
-    setTimeout(() => {
-      window.print()
-      // Most browsers fire focus on return from the print dialog; reset title.
-      const reset = () => { document.title = previousTitle; window.removeEventListener('focus', reset) }
-      window.addEventListener('focus', reset)
-    }, 200)
+    document.body.classList.add('printing-resume')
+
+    const cleanup = () => {
+      document.body.classList.remove('printing-resume')
+      document.title = previousTitle
+      window.removeEventListener('afterprint', cleanup)
+      window.removeEventListener('focus', cleanup)
+    }
+    window.addEventListener('afterprint', cleanup)
+    window.addEventListener('focus', cleanup)
+
+    // Wait two animation frames so layout settles, then verify the print
+    // root contains exactly `expected` page nodes before printing.
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        const printPages = document.querySelectorAll('#resume-print-root .resume-print-page').length
+        if (printPages !== expected) {
+          // eslint-disable-next-line no-console
+          console.warn('Resume print page mismatch', { preview: expected, print: printPages })
+        } else {
+          // eslint-disable-next-line no-console
+          console.log('Printing resume pages:', printPages)
+        }
+        window.print()
+      })
+    })
   }
 
   return (
@@ -187,26 +212,33 @@ export default function ResumeBuilderPage() {
           </div>
 
           {/* ── PREVIEW ── */}
-          <div className={`lg:col-span-2 ${tab !== 'preview' ? 'hidden lg:block' : ''}`}>
+          <div className={`lg:col-span-2 ${tab !== 'preview' ? 'hidden lg:block' : ''} no-print`}>
             <div className="px-4 lg:px-0 py-4">
               <div className="lg:sticky lg:top-4">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-[11px] font-bold text-txt-secondary uppercase tracking-wide">Live preview · A4</span>
+                  <span className="text-[11px] font-bold text-txt-secondary uppercase tracking-wide">
+                    Live preview · A4 · {pageCount} page{pageCount === 1 ? '' : 's'}
+                  </span>
                   <span className="text-[10px] text-txt-tertiary">Template: {TEMPLATES.find(t => t.id === resume.template)?.name}</span>
                 </div>
-                <ResumePreview resume={resume} />
+                <ResumeScreenPreview resume={resume} />
+                <p className="mt-3 text-[10px] text-txt-tertiary text-center">
+                  Tip: in the print dialog, turn off "Headers and footers" for the cleanest PDF.
+                </p>
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Hidden full-size print view — only this renders when window.print() fires */}
-      <div id="resume-print-root" className="hidden print:block">
-        <ResumePreview resume={resume} forPrint />
+      {/* Print root — pages render at real A4 dimensions. Hidden on screen
+          via PrintStyles (`#resume-print-root { display: none }`); revealed
+          only when `body.printing-resume` is set during window.print(). */}
+      <div id="resume-print-root" aria-hidden="true">
+        <ResumePrintDocument resume={resume} />
       </div>
 
-      <PrintStyles fileName={`Pravasi_Setu_Resume_${(resume.personal.name || 'worker').replace(/\s+/g, '_')}`} />
+      <PrintStyles />
     </div>
   )
 }
@@ -554,147 +586,482 @@ function ReferencesSection({ items, onAdd, onPatch, onRemove }) {
   )
 }
 
-/* ───────────────────────── Live preview ───────────────────────────── */
-function ResumePreview({ resume, forPrint = false }) {
+/* ───────────────────────── Paginated print document ───────────────────────
+   A single resume is split into one or more A4 pages. Page 1 carries the big
+   blue header; later pages carry a compact continuation header. Every page
+   reserves space for a Page-X-of-Y footer so content never overlaps the bottom.
+   See docs/RESUME_BUILDER_FLOW.md for the section/budget heuristics. */
+
+// Canonical A4 geometry. Both the on-screen preview AND the print root
+// render `.resume-print-page` at *exactly* these dimensions — preview only
+// applies a CSS transform to the wrapper, never to the page itself. Keeping
+// the geometry identical guarantees that "preview shows N pages" matches
+// "print produces N pages."
+const A4_PAGE_WIDTH_MM        = 210
+const A4_PAGE_HEIGHT_MM       = 297
+const PAGE_PADDING_TOP_MM     = 14
+const PAGE_PADDING_X_MM       = 14
+const PAGE_PADDING_BOTTOM_MM  = 18
+const FOOTER_HEIGHT_MM        = 10
+
+// Reserved budgets in mm — predictable section grouping. Conservative
+// undershoot leaves the browser's `break-inside: avoid` as a safety net.
+const PAGE1_BUDGET_MM = 200  // after main header + footer reservation
+const PAGEN_BUDGET_MM = 225  // after continuation header + footer reservation
+const HEADING_MM = 8
+
+// Build the linear list of section descriptors in the order they should print.
+// Empty sections are dropped — the spec asks for "if section is empty, hide".
+function buildResumeSections(resume) {
+  const out = []
+  if ((resume.summary || '').trim().length > 0) {
+    out.push({ kind: 'summary', label: 'Summary', text: resume.summary })
+  }
+  if (resume.skills.length > 0) {
+    out.push({ kind: 'skills', label: 'Skills', items: resume.skills })
+  }
+  if (resume.experience.length > 0) {
+    // Trim long responsibilities lines to keep page geometry reliable.
+    out.push({
+      kind: 'experience',
+      label: 'Work experience',
+      items: resume.experience.map(e => ({ ...e, _bullets: bulletsOf(e.responsibilities, 4) })),
+    })
+  }
+  if (resume.certifications.length > 0) {
+    out.push({ kind: 'certifications', label: 'Certifications', items: resume.certifications })
+  }
+  if (resume.education.length > 0) {
+    out.push({ kind: 'education', label: 'Education', items: resume.education })
+  }
+  if (resume.languages.length > 0) {
+    out.push({ kind: 'languages', label: 'Languages', items: resume.languages })
+  }
+  if (resume.template === 'overseas' && resume.documents.length > 0) {
+    out.push({ kind: 'documents', label: 'Document readiness', items: resume.documents })
+  }
+  if (resume.references.length > 0) {
+    out.push({ kind: 'references', label: 'References', items: resume.references })
+  }
+  return out
+}
+
+function bulletsOf(text, max) {
+  if (!text) return []
+  return text
+    .split(/\n+|•|;|·/)
+    .map(s => s.trim())
+    .filter(Boolean)
+    .slice(0, max)
+}
+
+function estimateItemHeight(kind, item) {
+  switch (kind) {
+    case 'experience': {
+      const bullets = item._bullets?.length || 0
+      return 12 + Math.min(bullets, 4) * 4 + (item.tools ? 4 : 0)
+    }
+    case 'certifications':
+      return 6
+    case 'education':
+      return 7
+    case 'languages':
+      return 5  // 2-col grid → 2 langs share a row of ~10mm; counting per-item gives 5
+    case 'documents':
+      return 4  // 3-col grid
+    case 'references':
+      return 18
+    default:
+      return 6
+  }
+}
+
+function estimateSummaryHeight(text) {
+  return 6 + Math.ceil((text || '').length / 90) * 4
+}
+
+function estimateSkillsHeight(items) {
+  // ~4 chips per row, each row 7mm.
+  return 5 + Math.ceil(items.length / 4) * 7
+}
+
+// Greedy packer. Atomic items (experience, certs, edu, references) cannot be
+// split mid-item; if one doesn't fit, the entire item moves to the next page.
+function paginateResume(resume) {
+  const sections = buildResumeSections(resume)
+  const pages = [{ sections: [] }]
+  let remaining = PAGE1_BUDGET_MM
+
+  const newPage = () => {
+    pages.push({ sections: [] })
+    remaining = PAGEN_BUDGET_MM
+  }
+  const ensureFit = (need) => {
+    if (need > remaining) newPage()
+  }
+
+  for (const section of sections) {
+    if (section.kind === 'summary') {
+      const h = HEADING_MM + estimateSummaryHeight(section.text)
+      ensureFit(h)
+      pages[pages.length - 1].sections.push(section)
+      remaining -= h
+      continue
+    }
+    if (section.kind === 'skills') {
+      const h = HEADING_MM + estimateSkillsHeight(section.items)
+      ensureFit(h)
+      pages[pages.length - 1].sections.push(section)
+      remaining -= h
+      continue
+    }
+
+    // Item-splittable sections. Heading + at least the first item must fit on
+    // the same page (anti-orphan rule).
+    const items = section.items
+    let bucket = { ...section, items: [] }
+    const firstItemH = items.length ? estimateItemHeight(section.kind, items[0]) : 0
+    if (HEADING_MM + firstItemH > remaining) newPage()
+    remaining -= HEADING_MM
+
+    for (const item of items) {
+      const ih = estimateItemHeight(section.kind, item)
+      if (ih > remaining) {
+        // Flush current bucket to current page, then continue on next page.
+        if (bucket.items.length > 0) pages[pages.length - 1].sections.push(bucket)
+        bucket = { ...section, items: [], continued: true }
+        newPage()
+        remaining -= HEADING_MM
+      }
+      bucket.items.push(item)
+      remaining -= ih
+    }
+    if (bucket.items.length > 0) pages[pages.length - 1].sections.push(bucket)
+  }
+
+  return pages
+}
+
+/* Canonical paginated document — same component used for screen and print.
+   The `.resume-print-page` always renders at 210mm × 297mm. The on-screen
+   preview only scales the wrapper (`ResumeScreenPreview` below). */
+function ResumePrintDocument({ resume }) {
+  const pages = useMemo(() => paginateResume(resume), [resume])
+  return (
+    <>
+      {pages.map((page, i) => (
+        <ResumePrintPage
+          key={i}
+          page={page}
+          pageNumber={i + 1}
+          totalPages={pages.length}
+          resume={resume}
+        />
+      ))}
+    </>
+  )
+}
+
+function ResumePrintPage({ page, pageNumber, totalPages, resume }) {
+  const isFirst = pageNumber === 1
+  // Canonical A4 — same for screen and print. Print CSS (in PrintStyles)
+  // promotes !important variants of these so the browser cannot fit-to-page.
+  const style = {
+    width:  `${A4_PAGE_WIDTH_MM}mm`,
+    height: `${A4_PAGE_HEIGHT_MM}mm`,
+    padding: `${PAGE_PADDING_TOP_MM}mm ${PAGE_PADDING_X_MM}mm ${PAGE_PADDING_BOTTOM_MM}mm`,
+    boxSizing: 'border-box',
+    position: 'relative',
+    overflow: 'hidden',
+    background: '#ffffff',
+  }
+  return (
+    <div
+      className="resume-print-page shadow-modal mx-auto"
+      data-page-number={pageNumber}
+      style={style}
+    >
+      {isFirst
+        ? <MainResumeHeader resume={resume} />
+        : <ContinuationHeader resume={resume} />}
+
+      <div className={`${isFirst ? 'mt-4' : 'mt-3'} space-y-3`}>
+        {page.sections.map((section, idx) => (
+          <ResumePrintSection
+            key={`${section.kind}-${idx}-${section.continued ? 'cont' : ''}`}
+            section={section}
+          />
+        ))}
+      </div>
+
+      <ResumeFooter pageNumber={pageNumber} totalPages={totalPages} resume={resume} />
+    </div>
+  )
+}
+
+/* On-screen preview wrapper — uses CSS transform: scale() to fit the
+   canonical A4 pages into whatever container width is available. The pages
+   themselves render at real A4 dimensions, so the pagination math stays
+   identical between preview and print. */
+function ResumeScreenPreview({ resume }) {
+  const viewportRef = useRef(null)
+  const [scale, setScale] = useState(0.55)
+  const pages = useMemo(() => paginateResume(resume), [resume])
+  const PAGE_GAP_MM = 6
+
+  useLayoutEffect(() => {
+    if (!viewportRef.current) return
+    const el = viewportRef.current
+    // 210mm at 96 DPI ≈ 793.7 px; we leave a 4-px safety gutter for shadows.
+    const A4_PX = 793.7
+    const compute = () => {
+      const w = el.clientWidth
+      if (!w) return
+      const next = Math.max(0.32, Math.min(0.85, (w - 4) / A4_PX))
+      setScale(s => (Math.abs(s - next) > 0.01 ? next : s))
+    }
+    compute()
+    const ro = new ResizeObserver(compute)
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [])
+
+  // Reserve the *scaled* height in the layout so the editor panel doesn't
+  // collapse around an absolutely-positioned stack.
+  const reservedHeightMm =
+    pages.length * A4_PAGE_HEIGHT_MM + Math.max(0, pages.length - 1) * PAGE_GAP_MM
+
+  return (
+    <div
+      ref={viewportRef}
+      className="relative w-full mx-auto"
+      style={{
+        height: `calc(${reservedHeightMm}mm * ${scale})`,
+        maxWidth: `calc(${A4_PAGE_WIDTH_MM}mm * ${scale} + 4px)`,
+      }}
+    >
+      <div
+        className="resume-preview-stack"
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          width: `${A4_PAGE_WIDTH_MM}mm`,
+          transformOrigin: 'top left',
+          transform: `scale(${scale})`,
+        }}
+      >
+        {pages.map((page, i) => (
+          <div key={i} style={{ marginTop: i === 0 ? 0 : `${PAGE_GAP_MM}mm` }}>
+            <ResumePrintPage
+              page={page}
+              pageNumber={i + 1}
+              totalPages={pages.length}
+              resume={resume}
+            />
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+function MainResumeHeader({ resume }) {
   const T = resume.template
   const headerColour = T === 'clean' ? 'bg-txt-primary' : 'bg-primary'
   return (
-    <div
-      className={`bg-white shadow-modal mx-auto ${forPrint ? 'w-full max-w-[820px]' : 'w-full max-w-[640px]'}`}
-      style={{ aspectRatio: forPrint ? 'auto' : '210 / 297', minHeight: forPrint ? 'auto' : 600 }}
-      id={forPrint ? 'resume-print' : 'resume-screen'}
-    >
-      {/* Top band */}
-      <div className={`${headerColour} text-white px-5 sm:px-6 py-4 flex items-center gap-3`}>
-        <img src={BRAND_ASSETS.nsdcLogo} alt="" className="h-10 w-auto bg-white rounded-lg p-0.5" onError={e => e.currentTarget.style.display = 'none'} />
-        <div className="flex-1 min-w-0">
-          <div className="text-[18px] font-extrabold leading-tight truncate">{resume.personal.name || 'Your name'}</div>
-          <div className="text-[11px] opacity-90 truncate">
-            {resume.personal.preferredRole}
-            {resume.personal.location ? ` · ${resume.personal.location}` : ''}
-          </div>
+    <div className={`${headerColour} text-white -mx-5 sm:-mx-6 px-5 sm:px-6 py-4 flex items-center gap-3`}>
+      <img
+        src={BRAND_ASSETS.nsdcLogo}
+        alt=""
+        className="h-10 w-auto bg-white rounded-lg p-0.5"
+        onError={e => (e.currentTarget.style.display = 'none')}
+      />
+      <div className="flex-1 min-w-0">
+        <div className="text-[20px] font-extrabold leading-tight truncate">{resume.personal.name || 'Your name'}</div>
+        <div className="text-[11px] opacity-90 truncate">
+          {resume.personal.preferredRole}
+          {resume.personal.location ? ` · ${resume.personal.location}` : ''}
         </div>
-        {T !== 'clean' && (
-          <div className="text-right">
-            <div className="text-[10px] opacity-80">Skill Passport</div>
-            <div className="text-[11px] font-mono font-bold">{resume.personal.skillPassportId}</div>
-          </div>
-        )}
       </div>
-
-      {/* Verified badges row (passport / overseas only) */}
       {T !== 'clean' && (
-        <div className="px-5 sm:px-6 pt-3 flex flex-wrap items-center gap-1.5">
-          {resume.personal.kycVerified  && <Badge tone="ok">✓ Aadhaar KYC</Badge>}
-          {resume.personal.passportAvailable && <Badge tone="ok">✓ Passport</Badge>}
-          {T === 'overseas' && <Badge tone="brand">Ready for {resume.personal.preferredCountry}</Badge>}
-          <Badge tone="brand">Pravasi Setu verified profile</Badge>
+        <div className="text-right">
+          <div className="text-[10px] opacity-80">Skill Passport</div>
+          <div className="text-[11px] font-mono font-bold">{resume.personal.skillPassportId}</div>
         </div>
       )}
+    </div>
+  )
+}
 
-      <div className="px-5 sm:px-6 py-4 text-[11px] text-txt-secondary leading-relaxed grid gap-4">
-        {/* Contact strip */}
-        <div className="grid grid-cols-3 gap-2 text-[10px]">
-          {resume.personal.phone   && <Pair k="Phone"   v={resume.personal.phone} />}
-          {resume.personal.email   && <Pair k="Email"   v={resume.personal.email} />}
-          {resume.personal.location&& <Pair k="Location" v={resume.personal.location} />}
+function ContinuationHeader({ resume }) {
+  return (
+    <div className="border-b-2 border-primary pb-2 flex items-center justify-between">
+      <div className="min-w-0">
+        <div className="text-[14px] font-extrabold text-txt-primary truncate">{resume.personal.name || 'Resume'}</div>
+        <div className="text-[10px] text-txt-secondary uppercase tracking-wide">Resume continued</div>
+      </div>
+      {resume.template !== 'clean' && (
+        <div className="text-right">
+          <div className="text-[9px] text-txt-tertiary uppercase">Skill Passport</div>
+          <div className="text-[11px] font-mono font-bold text-primary">{resume.personal.skillPassportId}</div>
         </div>
+      )}
+    </div>
+  )
+}
 
-        {resume.summary && (
-          <PreviewSection title="Summary">
-            <p className="text-txt-primary text-[12px] leading-relaxed">{resume.summary}</p>
-          </PreviewSection>
-        )}
+function ResumeFooter({ pageNumber, totalPages, resume }) {
+  return (
+    <div
+      className="resume-print-footer absolute left-0 right-0 px-5 sm:px-6 pt-2 border-t border-bdr-light text-[9px] text-txt-tertiary flex items-center justify-between"
+      style={{ bottom: '8mm' }}
+    >
+      <span>Generated by Pravasi Setu · {formatDate(resume.lastUpdated)}</span>
+      <span>Page {pageNumber} of {totalPages}</span>
+      <span>Prototype document — not an official certificate</span>
+    </div>
+  )
+}
 
-        {resume.skills.length > 0 && (
-          <PreviewSection title="Skills">
-            <div className="flex flex-wrap gap-1.5">
-              {resume.skills.map(s => (
-                <span key={s.id || s.name} className={`px-2 py-0.5 rounded-pill text-[10px] font-bold ${s.verified ? 'bg-ok-light text-ok' : 'bg-primary-50 text-primary'}`}>
-                  {s.verified ? '✓ ' : ''}{s.name} · {s.level} · {s.years}y
-                </span>
-              ))}
-            </div>
-          </PreviewSection>
-        )}
-
-        {resume.experience.length > 0 && (
-          <PreviewSection title="Work experience">
-            <div className="space-y-2">
-              {resume.experience.map(e => (
-                <div key={e.id} className="text-[11px]">
-                  <div className="text-txt-primary font-bold text-[12px]">{e.title || 'Role'}</div>
-                  <div className="text-txt-secondary">{[e.company, e.country, e.duration].filter(Boolean).join(' · ')}{e.current ? ' · Current' : ''}</div>
-                  {e.responsibilities && <p className="text-txt-secondary mt-0.5">{e.responsibilities}</p>}
-                  {e.tools && <p className="text-txt-tertiary text-[10px] mt-0.5">Tools: {e.tools}</p>}
-                </div>
-              ))}
-            </div>
-          </PreviewSection>
-        )}
-
-        {resume.certifications.length > 0 && (
-          <PreviewSection title="Certifications">
-            <ul className="space-y-1 text-[11px]">
-              {resume.certifications.map(c => (
-                <li key={c.id || c.name} className="flex items-start gap-2">
-                  <span className={`mt-1 inline-block w-1.5 h-1.5 rounded-full ${c.verified ? 'bg-ok' : 'bg-warn'}`} />
-                  <span>
-                    <span className="text-txt-primary font-bold">{c.name}</span>
-                    <span className="text-txt-secondary"> — {c.issuer || '—'}{c.year ? `, ${c.year}` : ''}</span>
-                    {c.verified && <span className="ml-1 text-ok font-bold">✓ Verified</span>}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          </PreviewSection>
-        )}
-
-        {resume.education.length > 0 && (
-          <PreviewSection title="Education">
-            <ul className="space-y-1 text-[11px]">
-              {resume.education.map(e => (
-                <li key={e.id}>
-                  <span className="text-txt-primary font-bold">{e.qualification}</span>
-                  {e.field        && <span className="text-txt-secondary"> · {e.field}</span>}
-                  {e.institution  && <span className="text-txt-secondary"> · {e.institution}</span>}
-                  {e.year         && <span className="text-txt-secondary"> · {e.year}</span>}
-                </li>
-              ))}
-            </ul>
-          </PreviewSection>
-        )}
-
-        {resume.languages.length > 0 && (
-          <PreviewSection title="Languages">
-            <div className="grid grid-cols-2 gap-1 text-[11px]">
-              {resume.languages.map(l => (
-                <div key={l.id} className="text-txt-primary">
-                  {l.name} <span className="text-txt-secondary">— S:{l.speaking[0]} · R:{l.reading[0]} · W:{l.writing[0]}</span>
-                </div>
-              ))}
-            </div>
-          </PreviewSection>
-        )}
-
-        {T === 'overseas' && resume.documents.length > 0 && (
-          <PreviewSection title="Document readiness">
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-1 text-[10px]">
-              {resume.documents.map(d => (
-                <div key={d.id} className="flex items-center gap-1.5">
-                  <DocStatusDot status={d.status} />
-                  <span className="text-txt-primary">{d.label}</span>
-                </div>
-              ))}
-            </div>
-          </PreviewSection>
-        )}
+function ResumePrintSection({ section }) {
+  return (
+    <section className="resume-section">
+      <div className="resume-section-heading text-[10px] font-bold text-primary uppercase tracking-wide border-b border-bdr-light pb-1 mb-1.5">
+        {section.label}{section.continued ? ' (continued)' : ''}
       </div>
+      {section.kind === 'summary'        && <SummaryBlock text={section.text} />}
+      {section.kind === 'skills'         && <SkillsBlock items={section.items} />}
+      {section.kind === 'experience'     && <ExperienceBlock items={section.items} />}
+      {section.kind === 'certifications' && <CertificationsBlock items={section.items} />}
+      {section.kind === 'education'      && <EducationBlock items={section.items} />}
+      {section.kind === 'languages'      && <LanguagesBlock items={section.items} />}
+      {section.kind === 'documents'      && <DocumentsBlock items={section.items} />}
+      {section.kind === 'references'     && <ReferencesBlock items={section.items} />}
+    </section>
+  )
+}
 
-      <div className="border-t border-bdr-light px-5 sm:px-6 py-2 flex items-center justify-between text-[9px] text-txt-tertiary">
-        <span>Generated by Pravasi Setu · {formatDate(resume.lastUpdated)}</span>
-        <span>Prototype document — not an official certificate</span>
+function SummaryBlock({ text }) {
+  return <p className="text-[11.5px] text-txt-primary leading-relaxed">{text}</p>
+}
+
+function SkillsBlock({ items }) {
+  return (
+    <div className="resume-chip-row flex flex-wrap gap-1.5">
+      {items.map(s => (
+        <span
+          key={s.id || s.name}
+          className={`px-2 py-0.5 rounded-pill text-[10px] font-bold ${
+            s.verified ? 'bg-ok-light text-ok' : 'bg-primary-50 text-primary'
+          }`}
+        >
+          {s.verified ? '✓ ' : ''}{s.name} · {s.level} · {s.years}y
+        </span>
+      ))}
+    </div>
+  )
+}
+
+function ExperienceBlock({ items }) {
+  return (
+    <div className="space-y-2">
+      {items.map(e => (
+        <div key={e.id} className="resume-entry text-[11px]">
+          <div className="flex items-baseline justify-between gap-2">
+            <div className="text-txt-primary font-bold text-[12px]">{e.title || 'Role'}</div>
+            <div className="text-[10px] text-txt-tertiary whitespace-nowrap">{e.duration}{e.current ? ' · Current' : ''}</div>
+          </div>
+          <div className="text-txt-secondary">
+            {[e.company, e.country].filter(Boolean).join(' · ')}
+          </div>
+          {e._bullets?.length > 0 && (
+            <ul className="mt-1 ml-3 list-disc text-txt-secondary space-y-0.5 text-[11px]">
+              {e._bullets.map((b, i) => <li key={i}>{b}</li>)}
+            </ul>
+          )}
+          {e.tools && <p className="text-[10px] text-txt-tertiary mt-0.5">Tools: {e.tools}</p>}
+        </div>
+      ))}
+    </div>
+  )
+}
+
+function CertificationsBlock({ items }) {
+  return (
+    <ul className="space-y-1 text-[11px]">
+      {items.map(c => (
+        <li key={c.id || c.name} className="resume-entry flex items-start gap-2">
+          <span className={`mt-1 inline-block w-1.5 h-1.5 rounded-full flex-shrink-0 ${c.verified ? 'bg-ok' : 'bg-warn'}`} />
+          <span className="flex-1">
+            <span className="text-txt-primary font-bold">{c.name}</span>
+            {(c.issuer || c.year) && (
+              <span className="text-txt-secondary"> — {c.issuer || '—'}{c.year ? `, ${c.year}` : ''}</span>
+            )}
+            {c.verified && <span className="ml-1 text-ok font-bold">✓ Verified</span>}
+          </span>
+        </li>
+      ))}
+    </ul>
+  )
+}
+
+function EducationBlock({ items }) {
+  return (
+    <ul className="space-y-1 text-[11px]">
+      {items.map(e => (
+        <li key={e.id} className="resume-entry">
+          <span className="text-txt-primary font-bold">{e.qualification}</span>
+          {e.field        && <span className="text-txt-secondary"> · {e.field}</span>}
+          {e.institution  && <span className="text-txt-secondary"> · {e.institution}</span>}
+          {e.year         && <span className="text-txt-secondary"> · {e.year}</span>}
+        </li>
+      ))}
+    </ul>
+  )
+}
+
+function LanguagesBlock({ items }) {
+  return (
+    <>
+      <div className="resume-entry grid grid-cols-2 gap-1 text-[11px]">
+        {items.map(l => (
+          <div key={l.id} className="text-txt-primary">
+            {l.name}{' '}
+            <span className="text-txt-secondary">— S:{(l.speaking || '?')[0]} · R:{(l.reading || '?')[0]} · W:{(l.writing || '?')[0]}</span>
+          </div>
+        ))}
       </div>
+      <p className="text-[9px] text-txt-tertiary mt-1">S = Speaking · R = Reading · W = Writing</p>
+    </>
+  )
+}
+
+function DocumentsBlock({ items }) {
+  return (
+    <div className="resume-entry grid grid-cols-2 sm:grid-cols-3 gap-1 text-[10px]">
+      {items.map(d => (
+        <div key={d.id} className="flex items-center gap-1.5">
+          <DocStatusDot status={d.status} />
+          <span className="text-txt-primary">{d.label}</span>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+function ReferencesBlock({ items }) {
+  return (
+    <div className="space-y-2">
+      {items.map(r => (
+        <div key={r.id} className="resume-entry text-[11px]">
+          <div className="text-txt-primary font-bold">{r.name || '—'}</div>
+          <div className="text-txt-secondary">
+            {[r.relation, r.company].filter(Boolean).join(' · ')}
+          </div>
+          {r.phone && <div className="text-txt-tertiary text-[10px]">{r.phone}</div>}
+        </div>
+      ))}
     </div>
   )
 }
@@ -809,30 +1176,125 @@ function formatDate(ts) {
   return new Date(ts).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })
 }
 
-/* Print stylesheet — only the resume-print-root prints; everything else is
-   suppressed. The browser's "Save as PDF" produces the actual PDF. */
-function PrintStyles({ fileName }) {
+/* Print stylesheet — strict paginated A4.
+   Key invariants:
+   - .resume-print-page is rendered at exactly 210mm × 297mm (height, not
+     min-height) with overflow:hidden, so the browser cannot fit-to-page or
+     compress multiple pages into one.
+   - position: static + no transform on the print root → no layout traps
+     that previously caused the "compress to 1 page" bug.
+   - body.printing-resume hides everything except #resume-print-root, so
+     the PDF contains only the resume.
+   - Footer is pinned absolutely per page so content can never overlap it. */
+function PrintStyles() {
   return (
     <style>{`
+      /* Hide the print root from the on-screen editor view — it's only here
+         so window.print() has paginated content to render. */
+      #resume-print-root {
+        display: none;
+      }
+
+      @page {
+        size: A4;
+        margin: 0;
+      }
+
       @media print {
-        @page { size: A4; margin: 12mm; }
-        body * { visibility: hidden !important; }
-        #resume-print-root, #resume-print-root * { visibility: visible !important; }
-        #resume-print-root {
-          position: absolute !important;
-          inset: 0 !important;
-          background: #fff !important;
-          color: #000 !important;
-          width: 100% !important;
-          padding: 0 !important;
+        html, body {
+          width: 210mm;
+          background: #ffffff !important;
           margin: 0 !important;
+          padding: 0 !important;
+          -webkit-print-color-adjust: exact !important;
+          print-color-adjust: exact !important;
+        }
+
+        /* Isolation: only the print root prints. */
+        body.printing-resume {
+          overflow: visible !important;
+        }
+        body.printing-resume * {
+          visibility: hidden !important;
+        }
+        body.printing-resume #resume-print-root,
+        body.printing-resume #resume-print-root * {
+          visibility: visible !important;
+        }
+        body.printing-resume #resume-print-root {
+          display: block !important;
+          position: static !important;
+          width: 210mm !important;
+          min-height: auto !important;
+          margin: 0 !important;
+          padding: 0 !important;
+          background: #ffffff !important;
+          transform: none !important;
+          zoom: 1 !important;
+        }
+
+        /* Anything explicitly marked .no-print is gone in print. */
+        .no-print {
+          display: none !important;
+        }
+
+        /* Per-page A4 frame. height is forced (not min-height) so the
+           browser cannot collapse multiple pages onto a single sheet. */
+        body.printing-resume .resume-print-page {
+          width: 210mm !important;
+          height: 297mm !important;
+          min-height: 297mm !important;
+          max-height: 297mm !important;
+          margin: 0 !important;
+          padding: 14mm 14mm 18mm !important;
+          box-sizing: border-box !important;
+          overflow: hidden !important;
+          page-break-after: always !important;
+          break-after: page !important;
+          background: #ffffff !important;
           box-shadow: none !important;
+          transform: none !important;
+          zoom: 1 !important;
+          position: relative !important;
           display: block !important;
         }
-        .shadow-modal, .shadow-card { box-shadow: none !important; }
-      }
-      @media print {
-        title { content: "${fileName}"; }
+        body.printing-resume .resume-print-page:last-child {
+          page-break-after: auto !important;
+          break-after: auto !important;
+        }
+
+        /* Defensive: kill the on-screen scaled preview wrapper (if it
+           somehow remained visible) so it doesn't fight the print pages. */
+        body.printing-resume .resume-preview-stack {
+          transform: none !important;
+        }
+
+        /* Atomic blocks that should never split. */
+        .resume-section,
+        .resume-entry,
+        .resume-chip-row {
+          break-inside: avoid !important;
+          page-break-inside: avoid !important;
+        }
+
+        /* Prevent a section heading orphaned at the bottom of a page. */
+        .resume-section > .resume-section-heading {
+          break-after: avoid !important;
+          page-break-after: avoid !important;
+        }
+
+        /* Footer pinned per-page so it never overlaps content. */
+        .resume-print-footer {
+          position: absolute !important;
+          left: 14mm !important;
+          right: 14mm !important;
+          bottom: 8mm !important;
+        }
+
+        /* Tone everything else clean. */
+        .shadow-modal, .shadow-card {
+          box-shadow: none !important;
+        }
       }
     `}</style>
   )

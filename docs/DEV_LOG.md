@@ -308,3 +308,104 @@ PDF" dialog suggests that filename. Zero added dependencies.
 - Chatbot can open resume actions ✓
 - Blue `#386AF6` primary CTA preserved; green only for verified;
   amber only for pending ✓
+
+---
+
+## 2026-04-30 (resume PDF pagination fix)
+
+The earlier sprint shipped resume-PDF generation via `window.print()` but
+content longer than one A4 page was being clipped at the page break and
+the footer overlapped content. This sprint replaces the single-`<div>`
+print root with a content-aware paginated document.
+
+### Changes
+- New helpers in [ResumeBuilderPage.jsx](../src/pages/ResumeBuilderPage.jsx):
+  `buildResumeSections`, `bulletsOf`, `estimateItemHeight`,
+  `estimateSummaryHeight`, `estimateSkillsHeight`, `paginateResume`.
+- New components: `ResumePrintDocument`, `ResumePrintPage`,
+  `MainResumeHeader`, `ContinuationHeader`, `ResumeFooter`,
+  `ResumePrintSection`, plus per-section blocks
+  (`SummaryBlock` / `SkillsBlock` / `ExperienceBlock` /
+  `CertificationsBlock` / `EducationBlock` / `LanguagesBlock` /
+  `DocumentsBlock` / `ReferencesBlock`).
+- Live preview now shows page count next to the "Live preview · A4"
+  label and stacks pages with vertical gaps.
+- `onPrint` toggles `body.printing-resume` and listens for `afterprint`
+  / `focus` to clean up + restore document title.
+- `PrintStyles` rewritten with `@page { size: A4; margin: 0 }`, the
+  `body.printing-resume` isolation pattern, exact A4 frames with
+  `page-break-after: always`, `break-inside: avoid` on sections / entries
+  / chip rows, an anti-orphan rule on section headings, and an absolutely-
+  positioned per-page footer pinned at `bottom: 8mm`.
+- Legacy `ResumePreview` and `ResumePreviewLegacy_KEEP_FOR_REF` removed
+  (the new paginated doc is used in both screen and print roots).
+
+### Acceptance
+- `npm run build` ✓
+- Multi-page A4 output with continuation headers + Page X of Y footers.
+- No section heading orphaned at the bottom of a page.
+- Work experience / certificates / education / references never split
+  mid-item.
+- Browser print output contains only the resume (no app chrome).
+- Live preview still works and accurately shows the page count.
+- Existing editor features unchanged.
+
+---
+
+## 2026-04-30 (resume PDF parity + back-button audit)
+
+The earlier paginated-PDF sprint shipped multi-page output but the
+preview and print versions used different content frames — preview used
+`aspect-ratio: 210/297` with smaller padding, while print used real
+`210mm`. That broke parity: a resume that showed 2 pages in the preview
+could compress to a single A4 sheet in the printed PDF. This sprint
+fixes the parity bug and audits all back buttons.
+
+### Resume parity (preview ↔ export)
+- New canonical constants in
+  [ResumeBuilderPage.jsx](../src/pages/ResumeBuilderPage.jsx):
+  `A4_PAGE_WIDTH_MM = 210`, `A4_PAGE_HEIGHT_MM = 297`,
+  `PAGE_PADDING_*_MM = 14 / 14 / 18`.
+- `ResumePrintPage` rewritten to render at the canonical A4 dimensions
+  in **both** screen and print contexts. The `screenMode` prop has been
+  removed entirely.
+- New `<ResumeScreenPreview>` wrapper measures the editor preview panel
+  with `ResizeObserver`, computes a scale factor (`available / 793.7px`
+  clamped to 0.32–0.85), applies it via `transform: scale()` on a
+  wrapper, and reserves the scaled height in the layout so the panel
+  doesn't collapse around an absolutely-positioned stack.
+- `PrintStyles` rewritten with strict, non-overrideable rules:
+  - `body, html { width: 210mm; print-color-adjust: exact }`
+  - `#resume-print-root { position: static !important; transform: none !important; zoom: 1 !important }`
+  - `.resume-print-page { width: 210mm !important; height: 297mm !important; min-height: 297mm !important; max-height: 297mm !important; overflow: hidden !important; page-break-after: always !important }`
+    The hard `height: 297mm` (instead of `min-height`) is the critical
+    fix — it stops the browser from auto-fitting multiple pages onto a
+    single sheet.
+- `onPrint` now waits two `requestAnimationFrame` ticks before printing,
+  then queries the DOM for `#resume-print-root .resume-print-page` count.
+  If the count drifts from the preview's `pages.length` it logs a
+  console warning so future regressions surface immediately. Toast also
+  hints "turn off browser headers in the print dialog" for the cleanest
+  PDF.
+
+### Back-button audit
+- Added a `BACK_FALLBACKS` map in
+  [AppContext.jsx](../src/context/AppContext.jsx) covering every deep
+  route: `resumeBuilder → passport`, `certificate → passport`,
+  `jobDetail → jobs`, `jobApplyChoice → jobDetail`,
+  `transferTracker → remittance`, `ticketDetail → grievance`,
+  `loans/insurance/travel → predeparture`, `employment/return → home`,
+  etc.
+- `goBack()` updated: when the navigation stack has only the current
+  route (e.g. user landed here via session restore or a chat deep-link),
+  it falls back to the mapped route instead of doing nothing. `params`
+  are reset on every back so a stale `transferId`/`loanId` doesn't
+  reappear.
+
+### Acceptance
+- `npm run build` ✓
+- Preview shows N pages → print/export shows N pages (verified via the
+  rAF + DOM-count check).
+- `.resume-print-page` is hard-locked at `height: 297mm` with
+  `overflow: hidden` — the browser cannot fit-to-page.
+- Back buttons recover gracefully on every deep page after refresh.

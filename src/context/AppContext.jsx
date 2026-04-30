@@ -49,6 +49,42 @@ const DEFAULT_SESSION = {
 // lastRoute is one of these, fall back to home for an authenticated user.
 const TRANSIENT_ROUTES = new Set(['splash', 'login', 'otp', 'kyc'])
 
+// Sensible "back from here goes to here" fallbacks. Used when the
+// in-session navigation stack has only one entry — most commonly because
+// the user landed on a deep route via session-restore or a chat deep-link.
+const BACK_FALLBACKS = {
+  // Skill-passport family
+  resumeBuilder:      'passport',
+  certificate:        'passport',
+  passport:           'profile',
+  profileSetup:       'profile',
+  // Jobs family
+  jobDetail:          'jobs',
+  jobApplyChoice:     'jobDetail',
+  applicationTracker: 'home',
+  employerProfile:    'jobs',
+  rateEmployer:       'jobDetail',
+  // Remittance / financial / mobility
+  transferTracker:    'remittance',
+  loans:              'predeparture',
+  insurance:          'predeparture',
+  travel:             'predeparture',
+  // Grievance / safety
+  ticketDetail:       'grievance',
+  emergency:          'home',
+  grievance:          'home',
+  // Lifecycle dashboards
+  predeparture:       'home',
+  postarrival:        'home',
+  remittance:         'home',
+  employment:         'home',
+  return:             'home',
+  // Misc
+  profile:            'home',
+  updates:            'home',
+  chat:               'home',
+}
+
 function pickInitialScreen(session, persistedAppState) {
   if (!session?.isAuthenticated) {
     // No session — start at splash (language pick) unless one was already chosen.
@@ -125,12 +161,22 @@ export function AppProvider({ children }) {
     setScreen(id)
   }, [])
 
+  // Pop the navigation stack. If the stack only has the current route
+  // (e.g. user landed here via session restore or a chat deep-link), fall
+  // back to a sensible default from BACK_FALLBACKS, then 'home'.
   const goBack = useCallback(() => {
     setStack(s => {
-      if (s.length <= 1) return s
-      const next = s.slice(0, -1)
-      setScreen(next[next.length - 1])
-      return next
+      if (s.length > 1) {
+        const next = s.slice(0, -1)
+        setScreen(next[next.length - 1])
+        setParams({})
+        return next
+      }
+      const current = s[s.length - 1]
+      const fallback = BACK_FALLBACKS[current] || 'home'
+      setScreen(fallback)
+      setParams({})
+      return [fallback]
     })
   }, [])
 
