@@ -76,8 +76,26 @@ financial, banking, or government integrations are claimed.
 - Validation is intentionally light-touch (UI prototype, not a regulated
   flow). Production must replace `validation.js` with server-side
   rules + verified bank/UPI/Aadhaar APIs.
-- Some less-trafficked pages (UpdatesPage, PostArrivalPage, ReturnPage,
-  EmploymentPage) still use the simpler `max-w-screen-md` cap — they
-  weren't reflagged as broken in screenshots and don't need master-detail.
 - Mukta / Noto Sans Indic fonts load from Google Fonts at runtime; offline
   builds need to vendor them.
+- localStorage-based persistence is prototype-grade only. Production must
+  use a real session/auth provider + server-backed user data, with
+  encryption-at-rest and audit logging.
+
+## Session Persistence + Wide-screen Audit (final pass)
+
+| Concern                                              | Status | Where                                          |
+|------------------------------------------------------|--------|------------------------------------------------|
+| Login persists across refresh                         | ✓ Done | `AppContext.session` + `pravasi_session`      |
+| Last route restored on refresh                        | ✓ Done | `pravasi_app_state` + `pickInitialScreen`     |
+| Profile / applications / transfers / tickets persist | ✓ Done | Each slice has its own storage key             |
+| Certificates persist                                  | ✓ Done | `pravasi_certificates`                        |
+| Pre-Departure checklist progress persists             | ✓ Done | `pravasi_checklist`                           |
+| Selected language persists                            | ✓ Done | `pravasi_language`                            |
+| Sign Out clears session + user data                   | ✓ Done | `signOut()` in AppContext                     |
+| KYC completion flag                                   | ✓ Done | `completeKYC()` sets `kycStatus: 'verified'`  |
+| SkillPassport constrained + polished                  | ✓ Done | `max-w-screen-lg`, 2-col md grid, rounded-2xl |
+| Return page no orange decoration                      | ✓ Done | Blue gradient hero, 2-col steps grid          |
+| Employment header + lists constrained                 | ✓ Done | `max-w-screen-xl`, master/detail on lg        |
+| Pre-Departure premium polish                          | ✓ Done | Section titles, rounded-2xl, hover lift       |
+| All headers cap inner content                         | ✓ Done | Audit complete; no edge-to-edge content       |

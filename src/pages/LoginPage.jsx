@@ -7,7 +7,7 @@ import { isValidIndianPhone, phoneMessage } from '../utils/validation'
 import { Phone, Fingerprint, ArrowRight, ShieldCheck } from 'lucide-react'
 
 export default function LoginPage() {
-  const { navigate } = useApp()
+  const { navigate, signIn } = useApp()
   const [phone, setPhone] = useState('')
   const [touched, setTouched] = useState(false)
   const phoneValid = isValidIndianPhone(phone)
@@ -49,7 +49,13 @@ export default function LoginPage() {
         )}
 
         <button
-          onClick={() => { setTouched(true); if (phoneValid) navigate('otp') }}
+          onClick={() => {
+            setTouched(true)
+            if (phoneValid) {
+              signIn({ kycStatus: 'pending' })
+              navigate('otp')
+            }
+          }}
           disabled={!phoneValid}
           className="w-full mt-5 bg-primary hover:bg-primary-dark text-white font-bold text-[15px] py-3.5 rounded-pill shadow-modal active:opacity-90 disabled:bg-primary-200 disabled:cursor-not-allowed flex items-center justify-center gap-2 transition-colors"
         >
@@ -63,7 +69,7 @@ export default function LoginPage() {
         </div>
 
         <button
-          onClick={() => navigate('kyc')}
+          onClick={() => { signIn({ kycStatus: 'pending' }); navigate('kyc') }}
           className="w-full border-2 border-primary text-primary font-semibold text-[14px] py-3 rounded-pill flex items-center justify-center gap-2 active:bg-primary-light"
         >
           <Fingerprint size={18} />

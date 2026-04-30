@@ -5,7 +5,7 @@ import LogoLockup from '../components/LogoLockup'
 import { ShieldCheck, Edit2 } from 'lucide-react'
 
 export default function OTPPage() {
-  const { navigate, goBack } = useApp()
+  const { navigate, goBack, signIn } = useApp()
   const [otp, setOtp] = useState(['', '', '', '', '', ''])
   const [seconds, setSeconds] = useState(30)
   const inputs = useRef([])
@@ -23,7 +23,10 @@ export default function OTPPage() {
     next[i] = d
     setOtp(next)
     if (d && i < 5) inputs.current[i + 1]?.focus()
-    if (next.every(x => x)) setTimeout(() => navigate('kyc'), 350)
+    if (next.every(x => x)) setTimeout(() => {
+      signIn({ kycStatus: 'pending' })
+      navigate('kyc')
+    }, 350)
   }
 
   const handleKey = (i, e) => {

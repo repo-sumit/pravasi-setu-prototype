@@ -19,7 +19,7 @@ const METHODS = [
 ]
 
 export default function KYCPage() {
-  const { navigate, showToast } = useApp()
+  const { navigate, showToast, completeKYC, signIn } = useApp()
   const [done, setDone] = useState({})
   const [active, setActive] = useState(null)
 
@@ -80,14 +80,14 @@ export default function KYCPage() {
       <div className="px-5 py-4 border-t border-bdr-light flex-shrink-0 flex justify-center">
         <div className="w-full max-w-[560px]">
         <button
-          onClick={() => navigate('home')}
+          onClick={() => { completeKYC(); navigate('home') }}
           disabled={!anyDone}
           className="w-full bg-primary text-white font-bold text-[15px] py-3.5 rounded-pill shadow-modal disabled:opacity-40 flex items-center justify-center gap-2"
         >
           Continue to App <ArrowRight size={18} />
         </button>
         {!anyDone && (
-          <button onClick={() => navigate('home')} className="w-full text-[12px] text-txt-tertiary mt-2">
+          <button onClick={() => { signIn({ hasCompletedOnboarding: true }); navigate('home') }} className="w-full text-[12px] text-txt-tertiary mt-2">
             Skip for now
           </button>
         )}

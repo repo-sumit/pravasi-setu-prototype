@@ -10,7 +10,7 @@ import {
 } from 'lucide-react'
 
 export default function ProfilePage() {
-  const { profile, navigate } = useApp()
+  const { profile, navigate, signOut } = useApp()
 
   return (
     <div className="flex-1 flex flex-col bg-surface-secondary overflow-hidden">
@@ -59,7 +59,7 @@ export default function ProfilePage() {
           <Section title="Settings">
             <LinkRow icon={Globe}    label="Language"             sub="English · Voice support enabled" />
             <LinkRow icon={Settings} label="Notifications & Alerts" />
-            <LinkRow icon={LogOut}   label="Sign Out" danger onClick={() => navigate('splash')} />
+            <LinkRow icon={LogOut}   label="Sign Out" danger onClick={() => signOut()} />
           </Section>
 
           <p className="text-center text-[10px] text-txt-tertiary pt-2 pb-3 px-2 leading-relaxed">

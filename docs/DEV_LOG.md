@@ -111,3 +111,71 @@
 - No green/teal as brand color anywhere; semantic green retained for
   verified / completed / success states only.
 - Auth pages capped at 560px, KYC sub-flows at 640px.
+
+---
+
+## 2026-04-30 (final pass) — Session persistence + wide-screen audit
+
+### Persistence layer
+- New [src/utils/storage.js](../src/utils/storage.js) with namespaced keys:
+  `pravasi_session / _profile / _app_state / _language / _applications /
+  _transfers / _tickets / _certificates / _checklist`. All reads use
+  `safeJsonParse`; all writes are wrapped in try/catch (quota safe). Marked
+  with a "prototype-only local persistence — replace with secure backend in
+  production" disclaimer.
+- [AppContext.jsx](../src/context/AppContext.jsx) now hydrates every slice
+  lazily from storage with `useState(() => loadX() ?? default)` and
+  persists each one through a `useEffect`. Added `session` slice with
+  `isAuthenticated`, `hasCompletedOnboarding`, `kycStatus`, `createdAt`.
+- New context actions: `signIn(opts)`, `completeKYC()`, `signOut()`.
+  `signOut` clears the session + every user-generated slice and routes to
+  `login` (language is preserved across sessions).
+- Initial screen picker: if authenticated and `lastRoute` is not a transient
+  auth route (`splash/login/otp/kyc`), restore it; otherwise go to `home`.
+  No session → `login` if a language is already chosen, else `splash`.
+
+### Auth wiring
+- LoginPage: phone-valid Send OTP → `signIn({ kycStatus: 'pending' })` then
+  navigate to OTP. "Login with Aadhaar / DigiLocker" button also signs in
+  before routing to KYC.
+- OTPPage: filling all 6 digits → `signIn({ kycStatus: 'pending' })` →
+  navigate to KYC.
+- KYCPage: "Continue to App" → `completeKYC()` (`kycStatus: 'verified'`) →
+  home. "Skip for now" → `signIn({ hasCompletedOnboarding: true })`.
+- ProfilePage: Sign Out wired to `signOut()`.
+
+### Routes that persist now
+After refresh on any non-auth screen, the user lands back on the same
+screen (params included). Examples verified: `transferTracker?transferId=`,
+`applicationTracker?applicationId=`, `ticketDetail?ticketId=`,
+`certificate?certId=`, `employerProfile?employerId=`.
+
+### Wide-screen audit (final pass)
+- **SkillPassport** rewrites: hero card capped at `max-w-screen-lg`,
+  body promoted to a 2-column md grid (Skills + Certifications),
+  Work Experience uses 2-col on `sm`, "Generate Resume PDF" CTA capped to
+  `min-w-[280px]` instead of stretching, every card is now
+  `rounded-2xl shadow-card border border-bdr-light`.
+- **ReturnPage** orange hero replaced with `from-primary to-primary-dark`
+  blue gradient + RotateCcw chip. Steps render as a 2-column grid on
+  desktop with `rounded-2xl`, hover-lift, and chevron-aligned rows. Skill
+  reuse mapping moved into its own polished card with a "View Skill
+  Passport" link.
+- **EmploymentPage** salary header uses blue gradient + capped content.
+  Page body uses `max-w-screen-xl mx-auto`. Quick action tiles use
+  `rounded-2xl`. Salary slips + Earnings trend now sit side-by-side on
+  `lg+` (master/detail).
+- **PreDeparturePage** restructured into three labelled sections
+  ("Services before departure" / "Departure checklist" /
+  "Legal Toolkit + Language"). Service tiles wrap an emoji in a coloured
+  bubble inside a `rounded-2xl` card with hover lift; the grid is now 3-up
+  on mobile and 4-5-up on tablet/desktop. Checklist groups use a 2-column
+  grid on `md+`. Legal + Language sit side-by-side; Language card upgraded
+  to a primary CTA.
+
+### Acceptance
+- `npm run build` ✓
+- Refresh on any non-auth route restores it; auth state survives reload.
+- Sign Out wipes user data, returns to Login.
+- No content card stretches edge-to-edge on desktop.
+- No orange/teal as brand color; semantic green only for completed.
