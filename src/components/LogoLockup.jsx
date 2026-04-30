@@ -1,4 +1,6 @@
 import React from 'react'
+import BrandImage from './BrandImage'
+import { BRAND_ASSETS, BRAND_NAMES } from '../config/brandAssets'
 
 // NSDC International is the official product mark.
 //   variant="centered"  → stacked logo + title + tagline (auth pages, splash)
@@ -12,22 +14,24 @@ export default function LogoLockup({
   showTagline = false,
   className = '',
 }) {
+  const img = (w) => (
+    <BrandImage
+      src={BRAND_ASSETS.nsdcLogo}
+      alt={BRAND_NAMES.primaryPartner}
+      fallbackLabel="NSDC"
+      style={{ width: w, height: 'auto' }}
+    />
+  )
+
   if (variant === 'iconOnly') {
-    return (
-      <img
-        src="/nsdc.png"
-        alt="Pravasi Setu"
-        className={className}
-        style={{ width: size || 36, height: 'auto' }}
-      />
-    )
+    return <span className={className}>{img(size || 36)}</span>
   }
 
   if (variant === 'compact') {
     return (
       <div className={`inline-flex items-center gap-2 ${className}`}>
-        <img src="/nsdc.png" alt="Pravasi Setu" style={{ width: size || 28, height: 'auto' }} />
-        <span className="text-[14px] font-extrabold text-txt-primary">Pravasi Setu</span>
+        {img(size || 28)}
+        <span className="text-[14px] font-extrabold text-txt-primary">{BRAND_NAMES.product}</span>
       </div>
     )
   }
@@ -35,9 +39,9 @@ export default function LogoLockup({
   if (variant === 'horizontal') {
     return (
       <div className={`flex items-center gap-3 ${className}`}>
-        <img src="/nsdc.png" alt="Pravasi Setu" style={{ width: size || 48, height: 'auto' }} />
+        {img(size || 48)}
         <div>
-          <div className="text-[16px] font-extrabold text-txt-primary leading-tight">Pravasi Setu</div>
+          <div className="text-[16px] font-extrabold text-txt-primary leading-tight">{BRAND_NAMES.product}</div>
           {subtitle && <div className="text-[11px] text-txt-secondary mt-0.5">{subtitle}</div>}
         </div>
       </div>
@@ -47,10 +51,10 @@ export default function LogoLockup({
   // centered (default)
   return (
     <div className={`flex flex-col items-center text-center ${className}`}>
-      <img src="/nsdc.png" alt="Pravasi Setu" style={{ width: size || 72, height: 'auto' }} />
-      <div className="text-[20px] font-extrabold text-txt-primary mt-3">Pravasi Setu</div>
+      {img(size || 72)}
+      <div className="text-[20px] font-extrabold text-txt-primary mt-3">{BRAND_NAMES.product}</div>
       {showTagline && (
-        <div className="text-[12px] text-txt-secondary mt-1">Your trusted bridge for migration</div>
+        <div className="text-[12px] text-txt-secondary mt-1">{BRAND_NAMES.productTagline}</div>
       )}
       {subtitle && (
         <div className="text-[12px] text-txt-secondary mt-1">{subtitle}</div>
