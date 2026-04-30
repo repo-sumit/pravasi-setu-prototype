@@ -1,21 +1,25 @@
-import React from 'react'
+import React, { useMemo } from 'react'
 import { useApp } from '../context/AppContext'
+import { isValidName, isValidIndianPhone } from '../utils/validation'
 import StatusBar from '../components/StatusBar'
 import TopBar from '../components/TopBar'
 import { VerifiedBadge } from '../components/VerifiedBadge'
 import PartnerStrip from '../components/PartnerStrip'
-import { QrCode, Share2, Download, Plus, Award, Briefcase, Star, ChevronRight } from 'lucide-react'
+import { QrCode, Share2, Download, Plus, Award, Briefcase, Star, ChevronRight, Edit3, FileText } from 'lucide-react'
 
 export default function SkillPassportPage() {
-  const { profile, showToast, navigate } = useApp()
+  const { profile, showToast, navigate, resume } = useApp()
+  const completeness = useMemo(() => completenessFromResume(resume), [resume])
+  const lastUpdated  = useMemo(() => relativeTime(resume?.lastUpdated), [resume?.lastUpdated])
 
   return (
     <div className="flex-1 flex flex-col bg-surface-secondary overflow-hidden">
       <StatusBar dark />
-      <TopBar title="Skill Passport" sub="Verifiable digital resume" dark
+      <TopBar title="Skill Passport" sub={`Updated ${lastUpdated}`} dark
         actions={[
-          { icon: <Share2 size={18} />, onClick: () => showToast('Share link copied') },
-          { icon: <Download size={18} />, onClick: () => showToast('Resume PDF downloaded') },
+          { icon: <Edit3 size={18} />,    onClick: () => navigate('resumeBuilder'), label: 'Edit Passport' },
+          { icon: <Share2 size={18} />,   onClick: () => showToast('Share link copied') },
+          { icon: <Download size={18} />, onClick: () => navigate('resumeBuilder') },
         ]}
       />
       <div className="flex-1 overflow-y-auto pb-6">
@@ -33,10 +37,14 @@ export default function SkillPassportPage() {
                   <QrCode size={44} className="text-primary" />
                 </div>
               </div>
-              <div className="mt-4 grid grid-cols-3 gap-2 pt-4 border-t border-bdr-light">
-                <Stat label="Skills"      value={profile.skills.length.toString()} />
+              <div className="mt-4 grid grid-cols-4 gap-2 pt-4 border-t border-bdr-light">
+                <Stat label="Skills"       value={profile.skills.length.toString()} />
                 <Stat label="Certificates" value={profile.certifications.length.toString()} />
                 <Stat label="Experience"   value={`${(profile.skills[0]?.years || 0)}y`} />
+                <Stat label="Readiness"    value={`${completeness}%`} />
+              </div>
+              <div className="mt-3 h-1.5 bg-bdr rounded-full overflow-hidden">
+                <div className={`h-full rounded-full transition-all ${completeness >= 80 ? 'bg-ok' : completeness >= 50 ? 'bg-warn' : 'bg-danger'}`} style={{ width: `${completeness}%` }} />
               </div>
               <div className="mt-3 flex items-center gap-2 flex-wrap">
                 <VerifiedBadge verified label="Aadhaar verified" />
@@ -108,12 +116,20 @@ export default function SkillPassportPage() {
             </div>
           </Section>
 
-          <button
-            onClick={() => showToast('Resume PDF generated')}
-            className="w-full sm:w-auto sm:min-w-[280px] sm:mx-auto block bg-primary hover:bg-primary-dark text-white font-bold text-[14px] py-3 px-6 rounded-pill shadow-card transition-colors"
-          >
-            Generate Resume PDF
-          </button>
+          <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 sm:justify-center">
+            <button
+              onClick={() => navigate('resumeBuilder')}
+              className="flex-1 sm:flex-none sm:min-w-[220px] bg-white border-2 border-primary text-primary font-bold text-[14px] py-3 px-6 rounded-pill flex items-center justify-center gap-2 hover:bg-primary-light transition-colors"
+            >
+              <Edit3 size={16} /> Edit Passport
+            </button>
+            <button
+              onClick={() => navigate('resumeBuilder')}
+              className="flex-1 sm:flex-none sm:min-w-[280px] bg-primary hover:bg-primary-dark text-white font-bold text-[14px] py-3 px-6 rounded-pill flex items-center justify-center gap-2 shadow-card transition-colors"
+            >
+              <FileText size={16} /> Open Resume Builder
+            </button>
+          </div>
 
           <PartnerStrip />
           <p className="text-center text-[10px] text-txt-tertiary px-4 leading-relaxed">
@@ -144,4 +160,31 @@ function Stat({ label, value }) {
       <div className="text-[10px] text-txt-secondary uppercase tracking-wide">{label}</div>
     </div>
   )
+}
+
+function completenessFromResume(r) {
+  if (!r) return 0
+  let total = 0, done = 0
+  const add = (cond) => { total++; if (cond) done++ }
+  add(isValidName(r.personal?.name))
+  add(isValidIndianPhone(r.personal?.phone))
+  add((r.personal?.location || '').trim().length >= 3)
+  add((r.summary || '').length >= 40)
+  add((r.skills || []).length > 0)
+  add((r.skills || []).some(s => s.verified))
+  add((r.certifications || []).length > 0)
+  add((r.experience || []).length > 0)
+  add((r.education || []).length > 0)
+  add((r.languages || []).length > 0)
+  add((r.documents || []).filter(d => d.status === 'available').length >= 3)
+  return Math.round((done / total) * 100)
+}
+
+function relativeTime(ts) {
+  if (!ts) return 'just now'
+  const d = Date.now() - ts
+  if (d < 60_000)    return 'just now'
+  if (d < 3600_000)  return `${Math.floor(d / 60_000)} min ago`
+  if (d < 86400_000) return `${Math.floor(d / 3600_000)} hr ago`
+  return new Date(ts).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })
 }

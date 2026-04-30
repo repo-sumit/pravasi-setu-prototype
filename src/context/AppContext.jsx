@@ -83,6 +83,17 @@ export function AppProvider({ children }) {
   const [manualApplications, setManualApplications] = useState(() => loadSlice(STORAGE_KEYS.manualApplications, null) || [])
   const [beneficiaries,      setBeneficiaries]      = useState(() => loadSlice(STORAGE_KEYS.beneficiaries,      null) || [])
 
+  // ── Resume Builder ──────────────────────────────────────────────────────
+  const [resume, setResumeState] = useState(() =>
+    loadSlice(STORAGE_KEYS.resume, null) || buildResumeFromProfile(persistedProfile)
+  )
+  const setResume = useCallback((updater) => {
+    setResumeState(r => {
+      const next = typeof updater === 'function' ? updater(r) : updater
+      return { ...next, lastUpdated: Date.now() }
+    })
+  }, [])
+
   const initialScreen = pickInitialScreen(persistedSession, persistedAppState)
   const [screen, setScreen] = useState(initialScreen)
   const [stack,  setStack]  = useState([initialScreen])
@@ -104,6 +115,7 @@ export function AppProvider({ children }) {
   useEffect(() => { saveSlice(STORAGE_KEYS.travelBookings,     travelBookings)     }, [travelBookings])
   useEffect(() => { saveSlice(STORAGE_KEYS.manualApplications, manualApplications) }, [manualApplications])
   useEffect(() => { saveSlice(STORAGE_KEYS.beneficiaries,      beneficiaries)      }, [beneficiaries])
+  useEffect(() => { saveSlice(STORAGE_KEYS.resume,             resume)             }, [resume])
   useEffect(() => { saveAppState({ lastRoute: screen, lastParams: params }) }, [screen, params])
 
   // ── Navigation ──────────────────────────────────────────────────────────
@@ -171,6 +183,7 @@ export function AppProvider({ children }) {
     setTravelBookings([])
     setManualApplications([])
     setBeneficiaries([])
+    setResumeState(buildResumeFromProfile(DEFAULT_PROFILE))
     setStack(['login'])
     setScreen('login')
     setParams({})
@@ -215,10 +228,95 @@ export function AppProvider({ children }) {
       travelBookings,     addTravelBooking,     updateTravelBooking,
       manualApplications, addManualApplication,
       beneficiaries,      addBeneficiary,
+      resume,             setResume,
     }}>
       {children}
     </AppContext.Provider>
   )
+}
+
+// Seed resume data from the profile mock when no persisted resume exists.
+function buildResumeFromProfile(profile) {
+  if (!profile) return defaultResume()
+  return {
+    template: 'overseas',
+    visibility: 'private',
+    lastUpdated: Date.now(),
+    personal: {
+      name:                 profile.name || '',
+      phone:                profile.phone || '',
+      email:                profile.email || '',
+      location:             profile.location || '',
+      preferredCountry:     profile.preferredCountry || 'UAE',
+      preferredRole:        profile.skills?.[0]?.name || 'Skilled worker',
+      passportAvailable:    true,
+      kycVerified:          !!profile.aadhaarVerified,
+      passportId:           profile.passportNumber || 'A1234567',
+      skillPassportId:      'PS-9847-3221',
+    },
+    summary: 'Skilled overseas-ready worker verified through Pravasi Setu. NSDC-linked credentials, Aadhaar/DigiLocker KYC complete, ready for deployment in GCC countries.',
+    skills: (profile.skills || []).map(s => ({
+      id: `sk-${s.name.toLowerCase().replace(/\s+/g, '-')}`,
+      name: s.name,
+      level: s.level || 'Skilled',
+      years: s.years || 1,
+      verified: !!s.verified,
+    })),
+    certifications: (profile.certifications || []).map(c => ({
+      id: c.id || `cert-${Math.random().toString(36).slice(2, 8)}`,
+      name: c.name,
+      issuer: c.issuer,
+      year: c.year,
+      verified: !!c.verified,
+      certNumber: c.certNumber || '',
+      expiry: c.expiry || '',
+    })),
+    experience: (profile.experience || []).map((e, i) => ({
+      id: `exp-${i}`,
+      title: e.role,
+      company: e.company,
+      country: e.country,
+      duration: e.duration,
+      current: false,
+      responsibilities: '',
+      tools: '',
+    })),
+    education: [
+      { id: 'edu-1', qualification: profile.education || '10th Pass', institution: '', year: '', field: '' },
+    ],
+    languages: [
+      { id: 'lang-1', name: 'Hindi',   speaking: 'Native',  reading: 'Native',  writing: 'Native' },
+      { id: 'lang-2', name: 'English', speaking: 'Conversational', reading: 'Conversational', writing: 'Basic' },
+    ],
+    documents: [
+      { id: 'doc-passport',  label: 'Passport',           status: 'available' },
+      { id: 'doc-aadhaar',   label: 'Aadhaar',            status: 'available' },
+      { id: 'doc-pcc',       label: 'Police Clearance',   status: 'pending' },
+      { id: 'doc-medical',   label: 'GAMCA Medical',      status: 'available' },
+      { id: 'doc-visa',      label: 'Work Visa',          status: 'pending' },
+      { id: 'doc-contract',  label: 'Job Contract',       status: 'available' },
+      { id: 'doc-insurance', label: 'PBBY Insurance',     status: 'available' },
+    ],
+    references: [],
+  }
+}
+
+function defaultResume() {
+  return {
+    template: 'clean',
+    visibility: 'private',
+    lastUpdated: Date.now(),
+    personal: { name: '', phone: '', email: '', location: '', preferredCountry: '', preferredRole: '',
+                passportAvailable: false, kycVerified: false, passportId: '', skillPassportId: '' },
+    summary: '',
+    skills: [],
+    certifications: [],
+    experience: [],
+    education: [],
+    languages: [],
+    documents: [],
+    references: [],
+  }
 }
 
 export const useApp = () => useContext(AppContext)

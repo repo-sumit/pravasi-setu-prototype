@@ -32,6 +32,7 @@ import LoansPage                   from './pages/LoansPage'
 import InsurancePage               from './pages/InsurancePage'
 import TravelPage                  from './pages/TravelPage'
 import JobApplyChoicePage          from './pages/JobApplyChoicePage'
+import ResumeBuilderPage           from './pages/ResumeBuilderPage'
 
 const ROUTES = {
   splash:                  SplashPage,
@@ -64,6 +65,7 @@ const ROUTES = {
   insurance:               InsurancePage,
   travel:                  TravelPage,
   jobApplyChoice:          JobApplyChoicePage,
+  resumeBuilder:           ResumeBuilderPage,
 }
 
 function AppRoutes() {

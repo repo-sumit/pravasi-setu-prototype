@@ -81,6 +81,11 @@ financial, banking, or government integrations are claimed.
 - localStorage-based persistence is prototype-grade only. Production must
   use a real session/auth provider + server-backed user data, with
   encryption-at-rest and audit logging.
+- Resume PDF uses browser `window.print()` (zero deps). Production should
+  swap to a server-side PDF render for predictable typography/pagination.
+- i18n JSON files exist but the runtime translator is not wired yet —
+  new strings are literal English. Wiring `useTranslation` is a separate
+  sprint.
 
 ## Session Persistence + Wide-screen Audit (final pass)
 
@@ -99,3 +104,19 @@ financial, banking, or government integrations are claimed.
 | Employment header + lists constrained                 | ✓ Done | `max-w-screen-xl`, master/detail on lg        |
 | Pre-Departure premium polish                          | ✓ Done | Section titles, rounded-2xl, hover lift       |
 | All headers cap inner content                         | ✓ Done | Audit complete; no edge-to-edge content       |
+
+## Resume Builder + Skill Passport (sprint)
+
+| Concern | Status | Where |
+|---------|--------|-------|
+| Skill Passport interactive (Edit / Share / Download header) | ✓ Done | SkillPassportPage TopBar + bottom CTA pair |
+| ResumeBuilderPage with sectioned editor                     | ✓ Done | [ResumeBuilderPage.jsx](../src/pages/ResumeBuilderPage.jsx) |
+| Personal / summary / skills / certs / experience / edu / languages / docs / references | ✓ Done | All 9 SectionCards in ResumeBuilderPage |
+| Live A4 preview                                             | ✓ Done | `ResumePreview` component, sticky on `lg+` |
+| 3 templates (clean / passport / overseas)                   | ✓ Done | `TEMPLATES` array; preview switches header + sections |
+| Downloadable PDF                                            | ✓ Done | print-to-PDF with `Pravasi_Setu_Resume_<name>` filename |
+| Resume data persists (`pravasi_resume_data`)                | ✓ Done | `setResume` + AppContext useEffect |
+| Profile completeness / readiness score                      | ✓ Done | Same heuristic on Resume Builder, Skill Passport, Swift Apply |
+| Swift Apply uses resume readiness + checklist               | ✓ Done | Low-readiness banner + "Complete resume" CTA |
+| Chatbot resume intents                                      | ✓ Done | 9 new intents in ChatPage |
+| i18n JSON skeletons (en/hi/ml/ta/bn/or)                     | ✓ Done | `src/i18n/translations/` (runtime not wired yet) |

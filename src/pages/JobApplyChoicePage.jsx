@@ -23,7 +23,7 @@ const APPLY_TIMELINE = (today) => ([
 ])
 
 export default function JobApplyChoicePage() {
-  const { params, navigate, profile, addApplication, addManualApplication, applications, manualApplications, showToast } = useApp()
+  const { params, navigate, profile, resume, addApplication, addManualApplication, applications, manualApplications, showToast } = useApp()
   const job = JOBS.find(j => j.id === params.jobId) || JOBS[0]
   const [mode, setMode] = useState('choose') // 'choose' | 'swift' | 'manual'
 
@@ -94,8 +94,8 @@ export default function JobApplyChoicePage() {
 
       <div className="flex-1 overflow-y-auto pb-6">
         <div className="max-w-screen-lg mx-auto w-full px-4 sm:px-6 mt-3 space-y-3">
-          {mode === 'choose' && <ChoiceCards setMode={setMode} job={job} profile={profile} />}
-          {mode === 'swift'  && <SwiftApplyReview job={job} profile={profile} onSubmit={submitSwift} />}
+          {mode === 'choose' && <ChoiceCards setMode={setMode} job={job} profile={profile} resume={resume} navigate={navigate} />}
+          {mode === 'swift'  && <SwiftApplyReview job={job} profile={profile} resume={resume} onSubmit={submitSwift} navigate={navigate} />}
           {mode === 'manual' && <ManualApplyForm  job={job} profile={profile} onSubmit={submitManual} />}
         </div>
       </div>
@@ -104,8 +104,10 @@ export default function JobApplyChoicePage() {
 }
 
 /* ───────────────────────── Choice cards ──────────────────────── */
-function ChoiceCards({ setMode, job, profile }) {
-  const completeness = profileCompleteness(profile)
+function ChoiceCards({ setMode, job, profile, resume, navigate }) {
+  const completeness = resume ? resumeCompleteness(resume) : profileCompleteness(profile)
+  const checklist = resume ? buildResumeChecklist(resume) : []
+  const lowReadiness = completeness < 60
   return (
     <>
       <div className="bg-white rounded-2xl shadow-card border border-bdr-light p-5">
@@ -158,6 +160,21 @@ function ChoiceCards({ setMode, job, profile }) {
         </button>
       </div>
 
+      {lowReadiness && checklist.length > 0 && (
+        <div className="bg-warn-light text-warn-text rounded-2xl p-4 border border-warn/30">
+          <div className="text-[12px] font-bold mb-1">Complete your resume to strengthen Swift Apply</div>
+          <ul className="text-[11px] space-y-0.5 mt-1">
+            {checklist.slice(0, 5).map(c => <li key={c}>• {c}</li>)}
+          </ul>
+          <button
+            onClick={() => navigate('resumeBuilder')}
+            className="mt-3 bg-primary hover:bg-primary-dark text-white font-bold text-[12px] px-4 py-2 rounded-pill"
+          >
+            Open Resume Builder
+          </button>
+        </div>
+      )}
+
       <AlertBanner tone="info" title="Verified migration route">
         Check recruiter and employer details before paying any fee. Pravasi Setu lists eMigrate-compatible employers — flagged employers are removed from search.
       </AlertBanner>
@@ -166,10 +183,11 @@ function ChoiceCards({ setMode, job, profile }) {
 }
 
 /* ───────────────────────── Swift Apply review ─────────────────────── */
-function SwiftApplyReview({ job, profile, onSubmit }) {
+function SwiftApplyReview({ job, profile, resume, onSubmit, navigate }) {
   const [consent, setConsent] = useState(false)
-  const completeness = profileCompleteness(profile)
+  const completeness = resume ? resumeCompleteness(resume) : profileCompleteness(profile)
   const missing = missingItems(profile)
+  const checklist = resume ? buildResumeChecklist(resume) : []
 
   return (
     <>
@@ -215,6 +233,17 @@ function SwiftApplyReview({ job, profile, onSubmit }) {
           <AlertBanner tone="warning" title="Missing documents (still optional)" className="mt-4">
             {missing.join(' · ')} — application is still submittable but adding these speeds up recruiter review.
           </AlertBanner>
+        )}
+        {completeness < 60 && checklist.length > 0 && (
+          <div className="mt-3 rounded-2xl border border-warn/30 bg-warn-light/60 p-3">
+            <div className="text-[12px] font-bold text-warn-text mb-1">Resume readiness {completeness}% — strengthen before sending</div>
+            <ul className="text-[11px] text-warn-text space-y-0.5">
+              {checklist.slice(0, 4).map(c => <li key={c}>• {c}</li>)}
+            </ul>
+            <button onClick={() => navigate?.('resumeBuilder')} className="mt-2 text-[12px] font-bold text-primary inline-flex items-center gap-1">
+              Complete resume →
+            </button>
+          </div>
         )}
       </div>
 
@@ -327,6 +356,35 @@ function profileCompleteness(profile) {
     (profile?.certifications?.length || 0) > 0,
   ]
   return Math.round((checks.filter(Boolean).length / checks.length) * 100)
+}
+
+function resumeCompleteness(r) {
+  let total = 0, done = 0
+  const add = (cond) => { total++; if (cond) done++ }
+  add(!!r.personal?.name)
+  add(!!r.personal?.phone)
+  add((r.personal?.location || '').trim().length >= 3)
+  add((r.summary || '').length >= 40)
+  add((r.skills || []).length > 0)
+  add((r.skills || []).some(s => s.verified))
+  add((r.certifications || []).length > 0)
+  add((r.experience || []).length > 0)
+  add((r.education || []).length > 0)
+  add((r.documents || []).filter(d => d.status === 'available').length >= 3)
+  return Math.round((done / total) * 100)
+}
+
+function buildResumeChecklist(r) {
+  const out = []
+  if ((r.summary || '').length < 40)                             out.push('Add a 40+ character summary')
+  if (!(r.education || []).length)                                out.push('Add your highest qualification')
+  if (!(r.experience || []).length)                               out.push('Add at least one work experience')
+  if (!(r.certifications || []).length)                           out.push('Add at least one certificate')
+  if (!(r.certifications || []).some(c => c.verified))            out.push('Verify a certificate via DigiLocker / NSDC')
+  if (!(r.skills || []).length)                                   out.push('Add at least one skill')
+  if ((r.documents || []).filter(d => d.status === 'available').length < 3)
+                                                                  out.push('Mark Aadhaar / passport / contract as available')
+  return out
 }
 
 function missingItems(profile) {

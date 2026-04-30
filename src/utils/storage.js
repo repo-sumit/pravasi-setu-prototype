@@ -20,6 +20,7 @@ export const STORAGE_KEYS = {
   travelBookings:     `${NS}_travel_bookings`,
   manualApplications: `${NS}_manual_applications`,
   beneficiaries:      `${NS}_beneficiaries`,
+  resume:             `${NS}_resume_data`,
 }
 
 const hasStorage = (() => {
@@ -75,6 +76,7 @@ export function clearSession() {
   remove(STORAGE_KEYS.travelBookings)
   remove(STORAGE_KEYS.manualApplications)
   remove(STORAGE_KEYS.beneficiaries)
+  remove(STORAGE_KEYS.resume)
 }
 
 // ── Profile ────────────────────────────────────────────────────────────────

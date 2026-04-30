@@ -14,8 +14,11 @@ export default function ProfilePage() {
   const {
     profile, navigate, signOut,
     loanApplications, insurancePolicies, travelBookings,
-    beneficiaries, transfers, applications,
+    beneficiaries, transfers, applications, resume,
   } = useApp()
+  const resumeUpdated = resume?.lastUpdated
+    ? new Date(resume.lastUpdated).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })
+    : null
 
   return (
     <div className="flex-1 flex flex-col bg-surface-secondary overflow-hidden">
@@ -55,8 +58,13 @@ export default function ProfilePage() {
 
           {/* Documents & Skills */}
           <Section title="Documents & Skills">
-            <LinkRow icon={ShieldCheck} label="Skill Passport" sub="3 skills · 3 certificates" onClick={() => navigate('passport')} />
-            <LinkRow icon={FileText}    label="Resume Builder" sub="Generate PDF · Share QR" onClick={() => navigate('passport')} />
+            <LinkRow icon={ShieldCheck} label="Skill Passport" sub={`${profile.skills.length} skills · ${profile.certifications.length} certificates`} onClick={() => navigate('passport')} />
+            <LinkRow
+              icon={FileText}
+              label="Resume Builder"
+              sub={resumeUpdated ? `Last updated ${resumeUpdated} · Download PDF` : 'Edit, preview & download PDF'}
+              onClick={() => navigate('resumeBuilder')}
+            />
             <LinkRow icon={Languages}   label="Languages"      sub="Hindi, English, Basic Arabic" />
           </Section>
 

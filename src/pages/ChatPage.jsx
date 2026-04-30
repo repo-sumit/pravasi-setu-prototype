@@ -33,6 +33,62 @@ function buildIntents(JOBS) {
       ],
     },
     {
+      keys: ['create my resume', 'edit my resume', 'build my resume', 'open resume builder', 'resume builder'],
+      reply: () => [
+        { from: 'bot', kind: 'text', text: 'Resume Builder lets you edit every section of your skill passport, preview an A4 layout and download a Pravasi-branded PDF.' },
+        { from: 'bot', kind: 'action', label: 'Open Resume Builder', icon: FileBadge, target: 'resumeBuilder' },
+      ],
+    },
+    {
+      keys: ['download my resume', 'export resume', 'resume pdf'],
+      reply: () => [
+        { from: 'bot', kind: 'text', text: 'Tap the Download button on Resume Builder — your browser will save a PDF named Pravasi_Setu_Resume_{your_name}.pdf.' },
+        { from: 'bot', kind: 'action', label: 'Download from Resume Builder', icon: FileBadge, target: 'resumeBuilder' },
+      ],
+    },
+    {
+      keys: ['add education', 'add my education'],
+      reply: () => [
+        { from: 'bot', kind: 'text', text: 'Open Resume Builder → Education to add your highest qualification, institution and year.' },
+        { from: 'bot', kind: 'action', label: 'Add education', icon: FileBadge, target: 'resumeBuilder' },
+      ],
+    },
+    {
+      keys: ['add work experience', 'add experience', 'add job history'],
+      reply: () => [
+        { from: 'bot', kind: 'text', text: 'Open Resume Builder → Work experience. Add title, company, country, duration and responsibilities.' },
+        { from: 'bot', kind: 'action', label: 'Add experience', icon: FileBadge, target: 'resumeBuilder' },
+      ],
+    },
+    {
+      keys: ['add certificate', 'upload certificate'],
+      reply: () => [
+        { from: 'bot', kind: 'text', text: 'Open Resume Builder → Certifications. Tag verified ones — they appear with a green badge in your resume.' },
+        { from: 'bot', kind: 'action', label: 'Add certificate', icon: FileBadge, target: 'resumeBuilder' },
+      ],
+    },
+    {
+      keys: ['show my skill passport', 'open skill passport', 'skill passport'],
+      reply: () => [
+        { from: 'bot', kind: 'text', text: 'Your Skill Passport shows verified skills, certificates, work history and a readiness score.' },
+        { from: 'bot', kind: 'action', label: 'Open Skill Passport', icon: Award, target: 'passport' },
+      ],
+    },
+    {
+      keys: ['share my profile', 'share resume', 'share skill passport'],
+      reply: () => [
+        { from: 'bot', kind: 'text', text: 'Open the Skill Passport → tap Share to copy a verifiable link, or download the PDF resume from Resume Builder.' },
+        { from: 'bot', kind: 'action', label: 'Open Skill Passport', icon: Award, target: 'passport' },
+      ],
+    },
+    {
+      keys: ['apply with my resume', 'apply with my profile', 'use my resume to apply'],
+      reply: () => [
+        { from: 'bot', kind: 'text', text: 'Open any job and tap Apply Now → Swift Apply uses your verified Pravasi resume in one tap.' },
+        { from: 'bot', kind: 'action', label: 'Browse jobs', icon: Briefcase, target: 'jobs' },
+      ],
+    },
+    {
       keys: ['upload certificate', 'add certificate', 'upload cert', 'add cert'],
       reply: () => [
         { from: 'bot', kind: 'text', text: 'Upload it via DigiLocker — we cross-verify with the issuer (NCVT, NSDC, CBSE etc.) and put it on-chain.' },

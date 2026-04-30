@@ -252,3 +252,59 @@ The spec asked to update `src/i18n/translations/{en,hi,ml,ta,bn,or}.json`,
 but no `src/i18n` folder currently exists in the prototype. New strings
 are literal English (matching every other page in the codebase). Adding
 i18n is a separate sprint.
+
+---
+
+## 2026-04-30 (resume builder sprint)
+
+Promoted the Skill Passport from a static card list into an editable
+resume workspace with a downloadable A4 PDF. Detailed acceptance breakdown
+in [RESUME_BUILDER_FLOW.md](RESUME_BUILDER_FLOW.md).
+
+### New
+- [src/pages/ResumeBuilderPage.jsx](../src/pages/ResumeBuilderPage.jsx) —
+  multi-section editor (personal, summary, skills, certifications,
+  experience, education, languages, documents, references) + 3-template
+  selector + live A4 preview + browser print-to-PDF (no extra deps).
+  Mobile uses Edit / Preview / Download tabs; desktop uses 5-col grid
+  with sticky preview.
+- `resume` slice in AppContext with `setResume(updater)` action that
+  bumps `lastUpdated`. Persisted under `pravasi_resume_data`.
+- Seed helper `buildResumeFromProfile(profile)` so first-time users see
+  a populated resume from existing skills / certs / experience.
+- Six i18n JSON skeletons under `src/i18n/translations/` covering the
+  resume keys requested by the spec (runtime provider not yet wired —
+  documented as a follow-up).
+
+### Updates
+- **SkillPassportPage** header now offers Edit / Share / Download
+  actions; the hero card has a 4th "Readiness" stat with a progress bar;
+  the bottom CTA pair is `Edit Passport` (outline) + `Open Resume
+  Builder` (primary). Sub-title shows last-updated relative time.
+- **ProfilePage** — Resume Builder row now navigates to `resumeBuilder`
+  with a "Last updated …" sub-line.
+- **JobApplyChoicePage** — Swift Apply card uses the resume slice for
+  completeness (falls back to profile if absent). When readiness < 60 %,
+  a checklist + "Open Resume Builder" CTA appears. Same checklist also
+  surfaces inside the Swift Apply Review step.
+- **ChatPage** — 9 new intents covering create / download / edit resume,
+  add education / experience / certificate, show skill passport, share
+  profile, apply with resume.
+- **App.jsx** — new `resumeBuilder` route.
+
+### PDF approach
+`window.print()` with print-only CSS that hides everything except a
+hidden `#resume-print-root`. `document.title` is swapped to
+`Pravasi_Setu_Resume_<name>` before printing so the browser's "Save as
+PDF" dialog suggests that filename. Zero added dependencies.
+
+### Acceptance
+- `npm run build` ✓
+- Resume Builder editor + preview + PDF download ✓
+- Resume data persists across refresh ✓
+- Skill Passport linked to Resume Builder + has interactive header ✓
+- Profile → Resume Builder ✓
+- Swift Apply uses resume readiness + checklist ✓
+- Chatbot can open resume actions ✓
+- Blue `#386AF6` primary CTA preserved; green only for verified;
+  amber only for pending ✓
